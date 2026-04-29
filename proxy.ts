@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const basicAuth = request.headers.get("authorization");
 
   if (basicAuth) {
     const authValue = basicAuth.split(" ")[1];
-    const [user, password] = atob(authValue).split(":");
+    const decoded = atob(authValue);
+    const [user, password] = decoded.split(":");
 
     const validUser = process.env.DASHBOARD_USERNAME;
     const validPassword = process.env.DASHBOARD_PASSWORD;
