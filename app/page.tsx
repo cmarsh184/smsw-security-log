@@ -3,29 +3,31 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 
-export default function Home() {
-  const [form, setForm] = useState({
-    site_location: "",
-    site_id: "",
-    officer_name: "",
-    officer_id: "",
-    duty_role: "",
-    log_number: "",
-    incident_date: "",
-    incident_time: "",
-    exact_location: "",
-    persons_involved: "",
-    description: "",
-    action_taken: "",
-    emergency_services: false,
-    supervisor_notified: false,
-    client_notified: false,
-    follow_up_required: false,
-    photo_url: "",
-    photo_urls: [] as string[],
-  });
+const emptyForm = {
+  site_location: "",
+  site_id: "",
+  officer_name: "",
+  officer_id: "",
+  duty_role: "",
+  log_number: "",
+  incident_date: "",
+  incident_time: "",
+  exact_location: "",
+  persons_involved: "",
+  description: "",
+  action_taken: "",
+  emergency_services: false,
+  supervisor_notified: false,
+  client_notified: false,
+  follow_up_required: false,
+  photo_url: "",
+  photo_urls: [] as string[],
+};
 
+export default function Home() {
+  const [form, setForm] = useState(emptyForm);
   const [files, setFiles] = useState<File[]>([]);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [message, setMessage] = useState("");
 
   const inputStyle =
@@ -78,61 +80,136 @@ export default function Home() {
       setMessage("Error: " + error.message);
     } else {
       setMessage("Report submitted successfully.");
+
+      setForm(emptyForm);
       setFiles([]);
+      setFileInputKey((current) => current + 1);
     }
   }
 
   return (
     <main className="min-h-screen bg-gray-100 p-4 text-black">
       <div className="mx-auto max-w-xl rounded-2xl border border-gray-300 bg-white p-6 shadow-lg">
-        <h1 className="mb-4 text-2xl font-bold text-black">SMSW Incident Report</h1>
+        <h1 className="mb-4 text-2xl font-bold text-black">
+          SMSW Incident Report
+        </h1>
 
         <form onSubmit={submitLog} className="space-y-4">
           <p className="font-semibold text-black">Site Details</p>
 
-          <input className={inputStyle} placeholder="Site / Location"
-            onChange={(e) => setForm({ ...form, site_location: e.target.value })} required />
+          <input
+            className={inputStyle}
+            placeholder="Site / Location"
+            value={form.site_location}
+            onChange={(e) =>
+              setForm({ ...form, site_location: e.target.value })
+            }
+            required
+          />
 
-          <input className={inputStyle} placeholder="Site ID"
-            onChange={(e) => setForm({ ...form, site_id: e.target.value })} />
+          <input
+            className={inputStyle}
+            placeholder="Site ID"
+            value={form.site_id}
+            onChange={(e) => setForm({ ...form, site_id: e.target.value })}
+          />
 
           <p className="mt-4 font-semibold text-black">Officer Details</p>
 
-          <input className={inputStyle} placeholder="Officer Name"
-            onChange={(e) => setForm({ ...form, officer_name: e.target.value })} required />
+          <input
+            className={inputStyle}
+            placeholder="Officer Name"
+            value={form.officer_name}
+            onChange={(e) =>
+              setForm({ ...form, officer_name: e.target.value })
+            }
+            required
+          />
 
-          <input className={inputStyle} placeholder="Officer ID / Call Sign"
-            onChange={(e) => setForm({ ...form, officer_id: e.target.value })} />
+          <input
+            className={inputStyle}
+            placeholder="Officer ID / Call Sign"
+            value={form.officer_id}
+            onChange={(e) => setForm({ ...form, officer_id: e.target.value })}
+          />
 
-          <input className={inputStyle} placeholder="Duty Role"
-            onChange={(e) => setForm({ ...form, duty_role: e.target.value })} />
+          <input
+            className={inputStyle}
+            placeholder="Duty Role"
+            value={form.duty_role}
+            onChange={(e) => setForm({ ...form, duty_role: e.target.value })}
+          />
 
-          <input className={inputStyle} placeholder="Log Number"
-            onChange={(e) => setForm({ ...form, log_number: e.target.value })} />
+          <input
+            className={inputStyle}
+            placeholder="Log Number"
+            value={form.log_number}
+            onChange={(e) => setForm({ ...form, log_number: e.target.value })}
+          />
 
           <p className="mt-4 font-semibold text-black">Incident Details</p>
 
-          <input type="date" className={inputStyle}
-            onChange={(e) => setForm({ ...form, incident_date: e.target.value })} required />
+          <input
+            type="date"
+            className={inputStyle}
+            value={form.incident_date}
+            onChange={(e) =>
+              setForm({ ...form, incident_date: e.target.value })
+            }
+            required
+          />
 
-          <input type="time" className={inputStyle}
-            onChange={(e) => setForm({ ...form, incident_time: e.target.value })} required />
+          <input
+            type="time"
+            className={inputStyle}
+            value={form.incident_time}
+            onChange={(e) =>
+              setForm({ ...form, incident_time: e.target.value })
+            }
+            required
+          />
 
-          <input className={inputStyle} placeholder="Exact Location"
-            onChange={(e) => setForm({ ...form, exact_location: e.target.value })} />
+          <input
+            className={inputStyle}
+            placeholder="Exact Location"
+            value={form.exact_location}
+            onChange={(e) =>
+              setForm({ ...form, exact_location: e.target.value })
+            }
+          />
 
-          <textarea className={inputStyle} placeholder="Persons Involved"
-            onChange={(e) => setForm({ ...form, persons_involved: e.target.value })} />
+          <textarea
+            className={inputStyle}
+            placeholder="Persons Involved"
+            value={form.persons_involved}
+            onChange={(e) =>
+              setForm({ ...form, persons_involved: e.target.value })
+            }
+          />
 
-          <textarea className={inputStyle} placeholder="Description"
-            onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+          <textarea
+            className={inputStyle}
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) =>
+              setForm({ ...form, description: e.target.value })
+            }
+            required
+          />
 
-          <textarea className={inputStyle} placeholder="Action Taken"
-            onChange={(e) => setForm({ ...form, action_taken: e.target.value })} />
+          <textarea
+            className={inputStyle}
+            placeholder="Action Taken"
+            value={form.action_taken}
+            onChange={(e) =>
+              setForm({ ...form, action_taken: e.target.value })
+            }
+          />
 
           <p className="mt-4 font-semibold text-black">Photo Evidence</p>
 
           <input
+            key={fileInputKey}
             type="file"
             accept="image/*"
             multiple
@@ -146,30 +223,64 @@ export default function Home() {
             </p>
           )}
 
-          <p className="mt-4 font-semibold text-black">Notifications & Actions</p>
+          <p className="mt-4 font-semibold text-black">
+            Notifications & Actions
+          </p>
 
           <div className="space-y-3 text-black">
             <label className="flex items-center gap-3">
-              <input type="checkbox"
-                onChange={(e) => setForm({ ...form, emergency_services: e.target.checked })} />
+              <input
+                type="checkbox"
+                checked={form.emergency_services}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    emergency_services: e.target.checked,
+                  })
+                }
+              />
               Emergency Services Involved
             </label>
 
             <label className="flex items-center gap-3">
-              <input type="checkbox"
-                onChange={(e) => setForm({ ...form, supervisor_notified: e.target.checked })} />
+              <input
+                type="checkbox"
+                checked={form.supervisor_notified}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    supervisor_notified: e.target.checked,
+                  })
+                }
+              />
               Supervisor Notified
             </label>
 
             <label className="flex items-center gap-3">
-              <input type="checkbox"
-                onChange={(e) => setForm({ ...form, client_notified: e.target.checked })} />
+              <input
+                type="checkbox"
+                checked={form.client_notified}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    client_notified: e.target.checked,
+                  })
+                }
+              />
               Client Notified
             </label>
 
             <label className="flex items-center gap-3">
-              <input type="checkbox"
-                onChange={(e) => setForm({ ...form, follow_up_required: e.target.checked })} />
+              <input
+                type="checkbox"
+                checked={form.follow_up_required}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    follow_up_required: e.target.checked,
+                  })
+                }
+              />
               Follow-up Required
             </label>
           </div>
@@ -179,7 +290,9 @@ export default function Home() {
           </button>
         </form>
 
-        {message && <p className="mt-4 text-center font-medium text-black">{message}</p>}
+        {message && (
+          <p className="mt-4 text-center font-medium text-black">{message}</p>
+        )}
       </div>
     </main>
   );
