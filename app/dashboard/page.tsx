@@ -54,9 +54,10 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           {filteredLogs.map((log) => {
-            const isSerious = log.emergency_services || log.follow_up_required;
+            const isSerious =
+              log.emergency_services || log.follow_up_required;
 
-            const photos =
+            const photos: string[] =
               Array.isArray(log.photo_urls) && log.photo_urls.length > 0
                 ? log.photo_urls
                 : log.photo_url
@@ -95,20 +96,19 @@ export default function Dashboard() {
                 {photos.length > 0 && (
                   <div className="mt-3">
                     <p className="mb-2 font-semibold">
-                      Photo Evidence ({photos.length}):
+                      Photo Evidence ({photos.length})
                     </p>
 
                     <div className="flex flex-wrap gap-3">
-                      {photos.map((photo, index) => (
+                      {photos.map((photo: string, index: number) => (
                         <button
                           key={photo}
                           type="button"
                           onClick={() => setSelectedImage(photo)}
-                          className="block"
                         >
                           <img
                             src={photo}
-                            alt={`Incident evidence ${index + 1}`}
+                            alt={`Incident photo ${index + 1}`}
                             className="h-40 w-40 cursor-pointer rounded border bg-white object-contain p-1 hover:opacity-80"
                           />
                         </button>
@@ -168,7 +168,7 @@ export default function Dashboard() {
 
             <img
               src={selectedImage}
-              alt="Full size incident evidence"
+              alt="Full size"
               className="max-h-[90vh] max-w-full rounded bg-white object-contain"
               onClick={(e) => e.stopPropagation()}
             />
