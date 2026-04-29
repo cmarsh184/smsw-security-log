@@ -22,45 +22,55 @@ export default function Home() {
     client_notified: false,
     follow_up_required: false,
     photo_url: "",
+    photo_urls: [] as string[],
   });
 
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState("");
 
   const inputStyle =
     "w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500";
 
-  async function uploadPhoto() {
-    if (!file) return "";
+  async function uploadPhotos() {
+    if (files.length === 0) return [];
 
-    const fileName = `${Date.now()}-${file.name}`;
+    const uploadedUrls: string[] = [];
 
-    const { error } = await supabase.storage
-      .from("incident-photos")
-      .upload(fileName, file);
+    for (const file of files) {
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2)}-${file.name}`;
 
-    if (error) {
-      console.error(error);
-      return "";
+      const { error } = await supabase.storage
+        .from("incident-photos")
+        .upload(fileName, file);
+
+      if (error) {
+        console.error(error);
+        continue;
+      }
+
+      const { data } = supabase.storage
+        .from("incident-photos")
+        .getPublicUrl(fileName);
+
+      uploadedUrls.push(data.publicUrl);
     }
 
-    const { data } = supabase.storage
-      .from("incident-photos")
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
+    return uploadedUrls;
   }
 
   async function submitLog(e: React.FormEvent) {
     e.preventDefault();
     setMessage("Submitting report...");
 
-    const photoUrl = await uploadPhoto();
+    const uploadedPhotoUrls = await uploadPhotos();
 
     const { error } = await supabase.from("event_logs").insert([
       {
         ...form,
-        photo_url: photoUrl,
+        photo_url: uploadedPhotoUrls[0] || "",
+        photo_urls: uploadedPhotoUrls,
       },
     ]);
 
@@ -68,7 +78,7 @@ export default function Home() {
       setMessage("Error: " + error.message);
     } else {
       setMessage("Report submitted successfully.");
-      setFile(null);
+      setFiles([]);
     }
   }
 
@@ -125,9 +135,16 @@ export default function Home() {
           <input
             type="file"
             accept="image/*"
+            multiple
             className={inputStyle}
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            onChange={(e) => setFiles(Array.from(e.target.files || []))}
           />
+
+          {files.length > 0 && (
+            <p className="text-sm text-gray-600">
+              {files.length} photo(s) selected
+            </p>
+          )}
 
           <p className="mt-4 font-semibold text-black">Notifications & Actions</p>
 

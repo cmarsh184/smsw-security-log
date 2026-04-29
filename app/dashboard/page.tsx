@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase";
 export default function Dashboard() {
   const [logs, setLogs] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   async function fetchLogs() {
     const { data, error } = await supabase
@@ -53,9 +54,14 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           {filteredLogs.map((log) => {
-            const isSerious =
-              log.emergency_services ||
-              log.follow_up_required;
+            const isSerious = log.emergency_services || log.follow_up_required;
+
+            const photos =
+              Array.isArray(log.photo_urls) && log.photo_urls.length > 0
+                ? log.photo_urls
+                : log.photo_url
+                ? [log.photo_url]
+                : [];
 
             return (
               <div
@@ -86,30 +92,35 @@ export default function Dashboard() {
                 <p className="mt-2"><strong>Description:</strong> {log.description}</p>
                 <p><strong>Action Taken:</strong> {log.action_taken}</p>
 
-                {/* 📸 PHOTO SECTION */}
-                {log.photo_url && (
+                {photos.length > 0 && (
                   <div className="mt-3">
-                    <p className="mb-2 font-semibold">Photo Evidence:</p>
+                    <p className="mb-2 font-semibold">
+                      Photo Evidence ({photos.length}):
+                    </p>
 
-                    <a
-                      href={log.photo_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <img
-                        src={log.photo_url}
-                        alt="Incident evidence"
-                        className="max-h-64 max-w-sm rounded border bg-white object-contain p-1 hover:opacity-80"
-                      />
-                    </a>
+                    <div className="flex flex-wrap gap-3">
+                      {photos.map((photo, index) => (
+                        <button
+                          key={photo}
+                          type="button"
+                          onClick={() => setSelectedImage(photo)}
+                          className="block"
+                        >
+                          <img
+                            src={photo}
+                            alt={`Incident evidence ${index + 1}`}
+                            className="h-40 w-40 cursor-pointer rounded border bg-white object-contain p-1 hover:opacity-80"
+                          />
+                        </button>
+                      ))}
+                    </div>
 
                     <p className="mt-1 text-xs text-gray-500">
-                      Click image to open full size
+                      Click any image to enlarge
                     </p>
                   </div>
                 )}
 
-                {/* STATUS TAGS */}
                 <div className="mt-3 flex flex-wrap gap-2 text-sm">
                   {log.emergency_services && (
                     <span className="rounded bg-red-600 px-2 py-1 text-white">
@@ -140,6 +151,30 @@ export default function Dashboard() {
           })}
         </div>
       </div>
+
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-h-full max-w-5xl">
+            <button
+              type="button"
+              onClick={() => setSelectedImage(null)}
+              className="absolute right-2 top-2 rounded bg-white px-3 py-1 font-bold text-black"
+            >
+              Close
+            </button>
+
+            <img
+              src={selectedImage}
+              alt="Full size incident evidence"
+              className="max-h-[90vh] max-w-full rounded bg-white object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 }
