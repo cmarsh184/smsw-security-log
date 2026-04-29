@@ -27,6 +27,9 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
 
+  const inputStyle =
+    "w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500";
+
   async function uploadPhoto() {
     if (!file) return "";
 
@@ -70,65 +73,65 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 p-4">
-      <div className="mx-auto max-w-xl rounded-2xl bg-white p-6 shadow-lg">
-        <h1 className="mb-4 text-2xl font-bold">SMSW Incident Report</h1>
+    <main className="min-h-screen bg-gray-100 p-4 text-black">
+      <div className="mx-auto max-w-xl rounded-2xl border border-gray-300 bg-white p-6 shadow-lg">
+        <h1 className="mb-4 text-2xl font-bold text-black">SMSW Incident Report</h1>
 
         <form onSubmit={submitLog} className="space-y-4">
-          <p className="font-semibold">Site Details</p>
+          <p className="font-semibold text-black">Site Details</p>
 
-          <input className="w-full rounded border p-3" placeholder="Site / Location"
+          <input className={inputStyle} placeholder="Site / Location"
             onChange={(e) => setForm({ ...form, site_location: e.target.value })} required />
 
-          <input className="w-full rounded border p-3" placeholder="Site ID"
+          <input className={inputStyle} placeholder="Site ID"
             onChange={(e) => setForm({ ...form, site_id: e.target.value })} />
 
-          <p className="mt-4 font-semibold">Officer Details</p>
+          <p className="mt-4 font-semibold text-black">Officer Details</p>
 
-          <input className="w-full rounded border p-3" placeholder="Officer Name"
+          <input className={inputStyle} placeholder="Officer Name"
             onChange={(e) => setForm({ ...form, officer_name: e.target.value })} required />
 
-          <input className="w-full rounded border p-3" placeholder="Officer ID / Call Sign"
+          <input className={inputStyle} placeholder="Officer ID / Call Sign"
             onChange={(e) => setForm({ ...form, officer_id: e.target.value })} />
 
-          <input className="w-full rounded border p-3" placeholder="Duty Role"
+          <input className={inputStyle} placeholder="Duty Role"
             onChange={(e) => setForm({ ...form, duty_role: e.target.value })} />
 
-          <input className="w-full rounded border p-3" placeholder="Log Number"
+          <input className={inputStyle} placeholder="Log Number"
             onChange={(e) => setForm({ ...form, log_number: e.target.value })} />
 
-          <p className="mt-4 font-semibold">Incident Details</p>
+          <p className="mt-4 font-semibold text-black">Incident Details</p>
 
-          <input type="date" className="w-full rounded border p-3"
+          <input type="date" className={inputStyle}
             onChange={(e) => setForm({ ...form, incident_date: e.target.value })} required />
 
-          <input type="time" className="w-full rounded border p-3"
+          <input type="time" className={inputStyle}
             onChange={(e) => setForm({ ...form, incident_time: e.target.value })} required />
 
-          <input className="w-full rounded border p-3" placeholder="Exact Location"
+          <input className={inputStyle} placeholder="Exact Location"
             onChange={(e) => setForm({ ...form, exact_location: e.target.value })} />
 
-          <textarea className="w-full rounded border p-3" placeholder="Persons Involved"
+          <textarea className={inputStyle} placeholder="Persons Involved"
             onChange={(e) => setForm({ ...form, persons_involved: e.target.value })} />
 
-          <textarea className="w-full rounded border p-3" placeholder="Description"
+          <textarea className={inputStyle} placeholder="Description"
             onChange={(e) => setForm({ ...form, description: e.target.value })} required />
 
-          <textarea className="w-full rounded border p-3" placeholder="Action Taken"
+          <textarea className={inputStyle} placeholder="Action Taken"
             onChange={(e) => setForm({ ...form, action_taken: e.target.value })} />
 
-          <p className="mt-4 font-semibold">Photo Evidence</p>
+          <p className="mt-4 font-semibold text-black">Photo Evidence</p>
 
           <input
             type="file"
             accept="image/*"
-            className="w-full rounded border p-3"
+            className={inputStyle}
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />
 
-          <p className="mt-4 font-semibold">Notifications & Actions</p>
+          <p className="mt-4 font-semibold text-black">Notifications & Actions</p>
 
-          <div className="space-y-3">
+          <div className="space-y-3 text-black">
             <label className="flex items-center gap-3">
               <input type="checkbox"
                 onChange={(e) => setForm({ ...form, emergency_services: e.target.checked })} />
@@ -154,12 +157,12 @@ export default function Home() {
             </label>
           </div>
 
-          <button className="w-full rounded-lg bg-black p-4 text-lg text-white">
+          <button className="w-full rounded-lg bg-black p-4 text-lg font-semibold text-white">
             Submit Report
           </button>
         </form>
 
-        {message && <p className="mt-4 text-center">{message}</p>}
+        {message && <p className="mt-4 text-center font-medium text-black">{message}</p>}
       </div>
     </main>
   );
