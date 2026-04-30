@@ -89,9 +89,7 @@ export default function Dashboard() {
           {filteredLogs.map((log) => {
             const status = log.status || "Open";
             const isOpen = status === "Open";
-
-            const isSerious =
-              log.emergency_services || log.follow_up_required;
+            const isSerious = log.emergency_services || log.follow_up_required;
 
             const photos: string[] =
               Array.isArray(log.photo_urls) && log.photo_urls.length > 0
@@ -214,9 +212,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       onClick={() =>
-                        alert(
-                          "PDF view is next. This button will open the full printable report page."
-                        )
+                        window.open(`/dashboard/report/${log.id}`, "_blank")
                       }
                       className="rounded bg-black px-4 py-2 font-semibold text-white"
                     >
