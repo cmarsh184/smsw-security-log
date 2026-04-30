@@ -40,11 +40,19 @@ export default function ReportPage() {
       <div className="mx-auto max-w-3xl bg-white p-6 shadow print:shadow-none">
 
         {/* HEADER */}
-        <div className="mb-6 border-b pb-4">
-          <h1 className="text-2xl font-bold">SMSW Incident Report</h1>
-          <p className="text-sm text-gray-600">
-            Security Management South West Ltd
-          </p>
+        <div className="mb-6 flex items-center gap-4 border-b pb-4">
+          <img
+            src="/logo.png"
+            alt="SMSW Logo"
+            className="h-16 w-auto object-contain"
+          />
+
+          <div>
+            <h1 className="text-2xl font-bold">SMSW Incident Report</h1>
+            <p className="text-sm text-gray-600">
+              Security Management South West Ltd
+            </p>
+          </div>
         </div>
 
         {/* BASIC INFO */}
@@ -57,7 +65,7 @@ export default function ReportPage() {
 
         {/* OFFICER */}
         <div className="mb-4">
-          <h2 className="mb-1 font-bold">Officer Details</h2>
+          <h2 className="mb-1 border-b font-bold">Officer Details</h2>
           <p><strong>Name:</strong> {log.officer_name}</p>
           <p><strong>ID / Call Sign:</strong> {log.officer_id}</p>
           <p><strong>Role:</strong> {log.duty_role}</p>
@@ -65,7 +73,7 @@ export default function ReportPage() {
 
         {/* INCIDENT */}
         <div className="mb-4">
-          <h2 className="mb-1 font-bold">Incident Details</h2>
+          <h2 className="mb-1 border-b font-bold">Incident Details</h2>
           <p><strong>Date:</strong> {log.incident_date}</p>
           <p><strong>Time:</strong> {log.incident_time}</p>
           <p><strong>Exact Location:</strong> {log.exact_location}</p>
@@ -74,18 +82,19 @@ export default function ReportPage() {
 
         {/* DESCRIPTION */}
         <div className="mb-4">
-          <h2 className="mb-1 font-bold">Description</h2>
+          <h2 className="mb-1 border-b font-bold">Description</h2>
           <p>{log.description}</p>
         </div>
 
         {/* ACTION */}
         <div className="mb-4">
-          <h2 className="mb-1 font-bold">Action Taken</h2>
+          <h2 className="mb-1 border-b font-bold">Action Taken</h2>
           <p>{log.action_taken}</p>
         </div>
 
         {/* FLAGS */}
         <div className="mb-4 text-sm">
+          <h2 className="mb-1 border-b font-bold">Notifications & Actions</h2>
           <p><strong>Emergency Services:</strong> {log.emergency_services ? "Yes" : "No"}</p>
           <p><strong>Supervisor Notified:</strong> {log.supervisor_notified ? "Yes" : "No"}</p>
           <p><strong>Client Notified:</strong> {log.client_notified ? "Yes" : "No"}</p>
@@ -95,7 +104,7 @@ export default function ReportPage() {
         {/* PHOTOS */}
         {photos.length > 0 && (
           <div className="mb-4">
-            <h2 className="mb-2 font-bold">Photo Evidence</h2>
+            <h2 className="mb-2 border-b font-bold">Photo Evidence</h2>
             <div className="grid grid-cols-2 gap-3">
               {photos.map((photo: string) => (
                 <img
@@ -111,12 +120,10 @@ export default function ReportPage() {
 
         {/* FOOTER */}
         <div className="mt-6 border-t pt-4 text-sm text-gray-500">
-          <p>
-            Report generated: {new Date().toLocaleString()}
-          </p>
+          <p>Report generated: {new Date().toLocaleString()}</p>
         </div>
 
-        {/* PRINT BUTTON (HIDDEN IN PDF) */}
+        {/* PRINT BUTTON */}
         <div className="mt-6 text-center print:hidden">
           <button
             onClick={() => window.print()}
@@ -125,7 +132,6 @@ export default function ReportPage() {
             Print / Save as PDF
           </button>
         </div>
-
       </div>
     </main>
   );
