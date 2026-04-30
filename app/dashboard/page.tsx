@@ -7,6 +7,7 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   async function fetchLogs() {
     const { data, error } = await supabase
@@ -23,20 +24,13 @@ export default function Dashboard() {
       .update({ status })
       .eq("id", id);
 
-    if (!error) {
-      fetchLogs();
-    } else {
-      alert("Could not update status: " + error.message);
-    }
+    if (!error) fetchLogs();
+    else alert("Could not update status: " + error.message);
   }
 
   useEffect(() => {
     fetchLogs();
-
-    const interval = setInterval(() => {
-      fetchLogs();
-    }, 5000);
-
+    const interval = setInterval(fetchLogs, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -54,7 +48,7 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-black">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-4 rounded-lg bg-white p-4 shadow">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -64,7 +58,7 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="flex gap-2 text-sm">
+            <div className="flex flex-wrap gap-2 text-sm">
               <span className="rounded bg-red-100 px-3 py-1 font-semibold text-red-700">
                 Open: {openCount}
               </span>
@@ -85,10 +79,21 @@ export default function Dashboard() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <div className="space-y-3">
+        <div className="overflow-hidden rounded-lg bg-white shadow">
+          <div className="hidden grid-cols-[120px_1.5fr_1fr_1fr_2fr_140px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
+            <div>Status</div>
+            <div>Site</div>
+            <div>Officer</div>
+            <div>Incident Time</div>
+            <div>Summary</div>
+            <div>Actions</div>
+            <div>Open</div>
+          </div>
+
           {filteredLogs.map((log) => {
             const status = log.status || "Open";
             const isOpen = status === "Open";
+            const isExpanded = expandedId === log.id;
             const isSerious = log.emergency_services || log.follow_up_required;
 
             const photos: string[] =
@@ -101,67 +106,138 @@ export default function Dashboard() {
             return (
               <div
                 key={log.id}
-                className={`rounded-lg border p-4 shadow ${
-                  isOpen
-                    ? "border-red-300 bg-red-50"
-                    : "border-green-300 bg-green-50"
+                className={`border-b ${
+                  isOpen ? "bg-red-50" : "bg-green-50"
                 }`}
               >
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div className="flex-1">
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <span
-                        className={`rounded px-3 py-1 text-sm font-bold text-white ${
-                          isOpen ? "bg-red-600" : "bg-green-600"
-                        }`}
-                      >
-                        {status}
-                      </span>
+                <div className="grid gap-3 p-3 md:grid-cols-[120px_1.5fr_1fr_1fr_2fr_140px_70px] md:items-center">
+                  <div>
+                    <span
+                      className={`inline-block rounded px-3 py-1 text-xs font-bold text-white ${
+                        isOpen ? "bg-red-600" : "bg-green-600"
+                      }`}
+                    >
+                      {status}
+                    </span>
 
-                      {isSerious && (
-                        <span className="rounded bg-orange-600 px-3 py-1 text-sm font-bold text-white">
-                          Attention Required
-                        </span>
-                      )}
+                    {isSerious && (
+                      <div className="mt-1 text-xs font-semibold text-orange-700">
+                        Attention Required
+                      </div>
+                    )}
+                  </div>
 
-                      <span className="text-sm text-gray-600">
-                        {new Date(log.created_at).toLocaleString()}
-                      </span>
-                    </div>
-
-                    <h2 className="text-xl font-bold">
+                  <div>
+                    <p className="font-semibold">
                       {log.site_location || "Unknown Site"}
-                    </h2>
-
-                    <p className="text-sm text-gray-700">
-                      <strong>Log:</strong> {log.log_number || "N/A"} |{" "}
-                      <strong>Site ID:</strong> {log.site_id || "N/A"} |{" "}
-                      <strong>Officer:</strong> {log.officer_name || "N/A"}{" "}
-                      {log.officer_id ? `(${log.officer_id})` : ""}
                     </p>
-
-                    <p className="text-sm text-gray-700">
-                      <strong>Incident:</strong> {log.incident_date || "N/A"}{" "}
-                      {log.incident_time || ""} |{" "}
-                      <strong>Exact Location:</strong>{" "}
-                      {log.exact_location || "N/A"}
+                    <p className="text-xs text-gray-600">
+                      Site ID: {log.site_id || "N/A"} | Log:{" "}
+                      {log.log_number || "N/A"}
                     </p>
+                  </div>
 
-                    <p className="mt-2">
-                      <strong>Description:</strong>{" "}
+                  <div>
+                    <p>{log.officer_name || "N/A"}</p>
+                    <p className="text-xs text-gray-600">
+                      {log.officer_id || ""}
+                    </p>
+                  </div>
+
+                  <div className="text-sm">
+                    <p>{log.incident_date || "N/A"}</p>
+                    <p className="text-xs text-gray-600">
+                      {log.incident_time || ""}
+                    </p>
+                  </div>
+
+                  <div className="text-sm">
+                    <p className="line-clamp-2">
                       {log.description || "No description provided"}
                     </p>
+                  </div>
 
-                    <p>
-                      <strong>Action Taken:</strong>{" "}
-                      {log.action_taken || "No action recorded"}
-                    </p>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.open(`/dashboard/report/${log.id}`, "_blank")
+                      }
+                      className="rounded bg-black px-3 py-2 text-sm font-semibold text-white"
+                    >
+                      View Report
+                    </button>
+
+                    {isOpen ? (
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(log.id, "Closed")}
+                        className="rounded bg-green-600 px-3 py-2 text-sm font-semibold text-white"
+                      >
+                        Mark Closed
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(log.id, "Open")}
+                        className="rounded bg-red-600 px-3 py-2 text-sm font-semibold text-white"
+                      >
+                        Reopen
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedId(isExpanded ? null : log.id)
+                    }
+                    className="rounded border bg-white px-3 py-2 text-xl font-bold hover:bg-gray-100"
+                    aria-label="Expand report"
+                  >
+                    {isExpanded ? "▲" : "▼"}
+                  </button>
+                </div>
+
+                {isExpanded && (
+                  <div className="border-t bg-white p-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <h3 className="mb-2 font-bold">Incident Details</h3>
+                        <p><strong>Exact Location:</strong> {log.exact_location || "N/A"}</p>
+                        <p><strong>Persons Involved:</strong> {log.persons_involved || "N/A"}</p>
+                        <p><strong>Duty Role:</strong> {log.duty_role || "N/A"}</p>
+                        <p><strong>Created:</strong> {new Date(log.created_at).toLocaleString()}</p>
+                      </div>
+
+                      <div>
+                        <h3 className="mb-2 font-bold">Notifications & Actions</h3>
+                        <p><strong>Emergency Services:</strong> {log.emergency_services ? "Yes" : "No"}</p>
+                        <p><strong>Supervisor Notified:</strong> {log.supervisor_notified ? "Yes" : "No"}</p>
+                        <p><strong>Client Notified:</strong> {log.client_notified ? "Yes" : "No"}</p>
+                        <p><strong>Follow-up Required:</strong> {log.follow_up_required ? "Yes" : "No"}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="mb-2 font-bold">Description</h3>
+                      <p className="rounded border bg-gray-50 p-3">
+                        {log.description || "No description provided"}
+                      </p>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="mb-2 font-bold">Action Taken</h3>
+                      <p className="rounded border bg-gray-50 p-3">
+                        {log.action_taken || "No action recorded"}
+                      </p>
+                    </div>
 
                     {photos.length > 0 && (
-                      <div className="mt-3">
-                        <p className="mb-2 font-semibold">
+                      <div className="mt-4">
+                        <h3 className="mb-2 font-bold">
                           Photo Evidence ({photos.length})
-                        </p>
+                        </h3>
 
                         <div className="flex flex-wrap gap-2">
                           {photos.map((photo: string, index: number) => (
@@ -180,72 +256,14 @@ export default function Dashboard() {
                         </div>
                       </div>
                     )}
-
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      {log.emergency_services && (
-                        <span className="rounded bg-red-600 px-2 py-1 text-white">
-                          Emergency Services
-                        </span>
-                      )}
-
-                      {log.supervisor_notified && (
-                        <span className="rounded bg-blue-600 px-2 py-1 text-white">
-                          Supervisor Notified
-                        </span>
-                      )}
-
-                      {log.client_notified && (
-                        <span className="rounded bg-purple-600 px-2 py-1 text-white">
-                          Client Notified
-                        </span>
-                      )}
-
-                      {log.follow_up_required && (
-                        <span className="rounded bg-yellow-500 px-2 py-1 text-white">
-                          Follow-up Required
-                        </span>
-                      )}
-                    </div>
                   </div>
-
-                  <div className="flex min-w-[180px] flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        window.open(`/dashboard/report/${log.id}`, "_blank")
-                      }
-                      className="rounded bg-black px-4 py-2 font-semibold text-white"
-                    >
-                      View Report
-                    </button>
-
-                    {isOpen ? (
-                      <button
-                        type="button"
-                        onClick={() => updateStatus(log.id, "Closed")}
-                        className="rounded bg-green-600 px-4 py-2 font-semibold text-white"
-                      >
-                        Mark Closed
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => updateStatus(log.id, "Open")}
-                        className="rounded bg-red-600 px-4 py-2 font-semibold text-white"
-                      >
-                        Reopen
-                      </button>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
             );
           })}
 
           {filteredLogs.length === 0 && (
-            <div className="rounded bg-white p-6 text-center shadow">
-              No reports found.
-            </div>
+            <div className="p-6 text-center">No reports found.</div>
           )}
         </div>
       </div>
