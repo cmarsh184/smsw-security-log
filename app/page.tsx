@@ -90,9 +90,22 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-100 p-4 text-black">
       <div className="mx-auto max-w-xl rounded-2xl border border-gray-300 bg-white p-6 shadow-lg">
-        <h1 className="mb-4 text-2xl font-bold text-black">
-          SMSW Incident Report
-        </h1>
+        <div className="mb-6 flex items-center gap-4 border-b pb-4">
+          <img
+            src="/logo.png"
+            alt="SMSW Logo"
+            className="h-14 w-auto object-contain"
+          />
+
+          <div>
+            <h1 className="text-2xl font-bold text-black">
+              SMSW Incident Report
+            </h1>
+            <p className="text-sm text-gray-600">
+              Security Management South West Ltd
+            </p>
+          </div>
+        </div>
 
         <form onSubmit={submitLog} className="space-y-4">
           <p className="font-semibold text-black">Site Details</p>
