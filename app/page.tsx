@@ -3,6 +3,17 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 
+function generateLogNumber() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const random = Math.floor(1000 + Math.random() * 9000);
+
+  return `SMSW-${year}${month}${day}-${random}`;
+}
+
 const emptyForm = {
   site_location: "",
   site_id: "",
@@ -25,7 +36,11 @@ const emptyForm = {
 };
 
 export default function Home() {
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState({
+    ...emptyForm,
+    log_number: generateLogNumber(),
+  });
+
   const [files, setFiles] = useState<File[]>([]);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [message, setMessage] = useState("");
@@ -81,7 +96,11 @@ export default function Home() {
     } else {
       setMessage("Report submitted successfully.");
 
-      setForm(emptyForm);
+      setForm({
+        ...emptyForm,
+        log_number: generateLogNumber(),
+      });
+
       setFiles([]);
       setFileInputKey((current) => current + 1);
     }
@@ -153,11 +172,12 @@ export default function Home() {
             onChange={(e) => setForm({ ...form, duty_role: e.target.value })}
           />
 
+          <p className="mt-4 font-semibold text-black">Report Reference</p>
+
           <input
-            className={inputStyle}
-            placeholder="Log Number"
+            className={`${inputStyle} bg-gray-100 font-semibold`}
             value={form.log_number}
-            onChange={(e) => setForm({ ...form, log_number: e.target.value })}
+            readOnly
           />
 
           <p className="mt-4 font-semibold text-black">Incident Details</p>
