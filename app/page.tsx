@@ -46,7 +46,7 @@ export default function Home() {
   const [message, setMessage] = useState("");
 
   const inputStyle =
-    "w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500";
+    "w-full rounded border border-gray-400 bg-white p-3 text-black";
 
   async function uploadPhotos() {
     if (files.length === 0) return [];
@@ -62,10 +62,7 @@ export default function Home() {
         .from("incident-photos")
         .upload(fileName, file);
 
-      if (error) {
-        console.error(error);
-        continue;
-      }
+      if (error) continue;
 
       const { data } = supabase.storage
         .from("incident-photos")
@@ -102,24 +99,19 @@ export default function Home() {
       });
 
       setFiles([]);
-      setFileInputKey((current) => current + 1);
+      setFileInputKey((k) => k + 1);
     }
   }
 
   return (
     <main className="min-h-screen bg-gray-100 p-4 text-black">
       <div className="mx-auto max-w-xl rounded-2xl border border-gray-300 bg-white p-6 shadow-lg">
-        <div className="mb-6 flex items-center gap-4 border-b pb-4">
-          <img
-            src="/logo.png"
-            alt="SMSW Logo"
-            className="h-14 w-auto object-contain"
-          />
 
+        {/* HEADER */}
+        <div className="mb-6 flex items-center gap-4 border-b pb-4">
+          <img src="/logo.png" className="h-14" />
           <div>
-            <h1 className="text-2xl font-bold text-black">
-              SMSW Incident Report
-            </h1>
+            <h1 className="text-2xl font-bold">SMSW Incident Report</h1>
             <p className="text-sm text-gray-600">
               Security Management South West Ltd
             </p>
@@ -127,7 +119,8 @@ export default function Home() {
         </div>
 
         <form onSubmit={submitLog} className="space-y-4">
-          <p className="font-semibold text-black">Site Details</p>
+
+          <p className="font-semibold">Site Details</p>
 
           <input
             className={inputStyle}
@@ -143,10 +136,12 @@ export default function Home() {
             className={inputStyle}
             placeholder="Site ID"
             value={form.site_id}
-            onChange={(e) => setForm({ ...form, site_id: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, site_id: e.target.value })
+            }
           />
 
-          <p className="mt-4 font-semibold text-black">Officer Details</p>
+          <p className="mt-4 font-semibold">Officer Details</p>
 
           <input
             className={inputStyle}
@@ -162,17 +157,28 @@ export default function Home() {
             className={inputStyle}
             placeholder="Officer ID / Call Sign"
             value={form.officer_id}
-            onChange={(e) => setForm({ ...form, officer_id: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, officer_id: e.target.value })
+            }
           />
 
-          <input
+          {/* 🔥 DROPDOWN HERE */}
+          <select
             className={inputStyle}
-            placeholder="Duty Role"
             value={form.duty_role}
-            onChange={(e) => setForm({ ...form, duty_role: e.target.value })}
-          />
+            onChange={(e) =>
+              setForm({ ...form, duty_role: e.target.value })
+            }
+            required
+          >
+            <option value="">Select Duty Role</option>
+            <option value="Security Officer">Security Officer</option>
+            <option value="Event Officer">Event Officer</option>
+            <option value="Traffic Management">Traffic Management</option>
+            <option value="Event Steward">Event Steward</option>
+          </select>
 
-          <p className="mt-4 font-semibold text-black">Report Reference</p>
+          <p className="mt-4 font-semibold">Report Reference</p>
 
           <input
             className={`${inputStyle} bg-gray-100 font-semibold`}
@@ -180,7 +186,7 @@ export default function Home() {
             readOnly
           />
 
-          <p className="mt-4 font-semibold text-black">Incident Details</p>
+          <p className="mt-4 font-semibold">Incident Details</p>
 
           <input
             type="date"
@@ -239,7 +245,7 @@ export default function Home() {
             }
           />
 
-          <p className="mt-4 font-semibold text-black">Photo Evidence</p>
+          <p className="mt-4 font-semibold">Photo Evidence</p>
 
           <input
             key={fileInputKey}
@@ -247,21 +253,17 @@ export default function Home() {
             accept="image/*"
             multiple
             className={inputStyle}
-            onChange={(e) => setFiles(Array.from(e.target.files || []))}
+            onChange={(e) =>
+              setFiles(Array.from(e.target.files || []))
+            }
           />
 
-          {files.length > 0 && (
-            <p className="text-sm text-gray-600">
-              {files.length} photo(s) selected
-            </p>
-          )}
-
-          <p className="mt-4 font-semibold text-black">
+          <p className="mt-4 font-semibold">
             Notifications & Actions
           </p>
 
-          <div className="space-y-3 text-black">
-            <label className="flex items-center gap-3">
+          <div className="space-y-3">
+            <label>
               <input
                 type="checkbox"
                 checked={form.emergency_services}
@@ -271,11 +273,11 @@ export default function Home() {
                     emergency_services: e.target.checked,
                   })
                 }
-              />
-              Emergency Services Involved
+              />{" "}
+              Emergency Services
             </label>
 
-            <label className="flex items-center gap-3">
+            <label>
               <input
                 type="checkbox"
                 checked={form.supervisor_notified}
@@ -285,11 +287,11 @@ export default function Home() {
                     supervisor_notified: e.target.checked,
                   })
                 }
-              />
+              />{" "}
               Supervisor Notified
             </label>
 
-            <label className="flex items-center gap-3">
+            <label>
               <input
                 type="checkbox"
                 checked={form.client_notified}
@@ -299,11 +301,11 @@ export default function Home() {
                     client_notified: e.target.checked,
                   })
                 }
-              />
+              />{" "}
               Client Notified
             </label>
 
-            <label className="flex items-center gap-3">
+            <label>
               <input
                 type="checkbox"
                 checked={form.follow_up_required}
@@ -313,18 +315,18 @@ export default function Home() {
                     follow_up_required: e.target.checked,
                   })
                 }
-              />
+              />{" "}
               Follow-up Required
             </label>
           </div>
 
-          <button className="w-full rounded-lg bg-black p-4 text-lg font-semibold text-white">
+          <button className="w-full rounded bg-black p-4 text-white font-semibold">
             Submit Report
           </button>
         </form>
 
         {message && (
-          <p className="mt-4 text-center font-medium text-black">{message}</p>
+          <p className="mt-4 text-center font-medium">{message}</p>
         )}
       </div>
     </main>
