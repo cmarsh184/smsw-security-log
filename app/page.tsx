@@ -15,8 +15,8 @@ function generateLogNumber() {
 }
 
 const emptyForm = {
-  site_location: "",
-  site_id: "",
+  site_location: "Torbay Airshow",
+  site_id: "33497",
   officer_name: "",
   officer_id: "",
   duty_role: "",
