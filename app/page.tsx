@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import imageCompression from "browser-image-compression";
 import { supabase } from "../lib/supabase";
 
 function generateLogNumber() {
@@ -15,8 +16,8 @@ function generateLogNumber() {
 }
 
 const emptyForm = {
-  site_location: "Torbay Airshow",
-  site_id: "33497",
+  site_location: "",
+  site_id: "",
   officer_name: "",
   officer_id: "",
   duty_role: "",
@@ -48,30 +49,55 @@ export default function Home() {
   const inputStyle =
     "w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500";
 
+  async function compressPhoto(file: File) {
+    const options = {
+      maxSizeMB: 0.4,
+      maxWidthOrHeight: 1600,
+      useWebWorker: true,
+      initialQuality: 0.7,
+    };
+
+    return await imageCompression(file, options);
+  }
+
   async function uploadPhotos() {
     if (files.length === 0) return [];
 
     const uploadedUrls: string[] = [];
 
     for (const file of files) {
-      const fileName = `${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2)}-${file.name}`;
+      try {
+        setMessage(
+          `Compressing photo ${uploadedUrls.length + 1} of ${files.length}...`
+        );
 
-      const { error } = await supabase.storage
-        .from("incident-photos")
-        .upload(fileName, file);
+        const compressedFile = await compressPhoto(file);
 
-      if (error) {
-        console.error(error);
-        continue;
+        const fileName = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2)}-${file.name}`;
+
+        setMessage(
+          `Uploading photo ${uploadedUrls.length + 1} of ${files.length}...`
+        );
+
+        const { error } = await supabase.storage
+          .from("incident-photos")
+          .upload(fileName, compressedFile);
+
+        if (error) {
+          console.error(error);
+          continue;
+        }
+
+        const { data } = supabase.storage
+          .from("incident-photos")
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(data.publicUrl);
+      } catch (error) {
+        console.error("Photo compression/upload failed:", error);
       }
-
-      const { data } = supabase.storage
-        .from("incident-photos")
-        .getPublicUrl(fileName);
-
-      uploadedUrls.push(data.publicUrl);
     }
 
     return uploadedUrls;
@@ -254,7 +280,8 @@ export default function Home() {
 
           {files.length > 0 && (
             <p className="text-sm text-gray-600">
-              {files.length} photo(s) selected
+              {files.length} photo(s) selected. Photos will be compressed before
+              upload.
             </p>
           )}
 
