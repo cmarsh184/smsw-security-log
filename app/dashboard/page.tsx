@@ -73,6 +73,61 @@ export default function Dashboard() {
     }
   }
 
+  function getIntelligenceBadges(log: any, severity: string) {
+    const badges = [];
+
+    if (severity === "Critical") {
+      badges.push({
+        label: "Critical Incident",
+        className: "bg-red-700 text-white",
+      });
+    }
+
+    if (severity === "High") {
+      badges.push({
+        label: "High Severity",
+        className: "bg-orange-500 text-white",
+      });
+    }
+
+    if (log.emergency_services) {
+      badges.push({
+        label: `Emergency Services${log.emergency_service_type ? `: ${log.emergency_service_type}` : ""}`,
+        className: "bg-red-100 text-red-800 border border-red-300",
+      });
+    }
+
+    if (log.emergency_service_log_number) {
+      badges.push({
+        label: `CAD/Log: ${log.emergency_service_log_number}`,
+        className: "bg-slate-200 text-slate-900 border border-slate-400",
+      });
+    }
+
+    if (log.follow_up_required) {
+      badges.push({
+        label: "Follow-up Required",
+        className: "bg-yellow-100 text-yellow-900 border border-yellow-400",
+      });
+    }
+
+    if (log.supervisor_notified) {
+      badges.push({
+        label: "Supervisor Notified",
+        className: "bg-blue-100 text-blue-800 border border-blue-300",
+      });
+    }
+
+    if (log.client_notified) {
+      badges.push({
+        label: "Client Notified",
+        className: "bg-purple-100 text-purple-800 border border-purple-300",
+      });
+    }
+
+    return badges;
+  }
+
   useEffect(() => {
     fetchLogs();
     const interval = setInterval(fetchLogs, 5000);
@@ -91,28 +146,31 @@ export default function Dashboard() {
     log.emergency_service_log_number?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openCount = logs.filter(
-    (log) => (log.status || "Open") === "Open"
-  ).length;
-
+  const openCount = logs.filter((log) => (log.status || "Open") === "Open").length;
   const closedCount = logs.filter((log) => log.status === "Closed").length;
-
   const highCount = logs.filter((log) => log.severity === "High").length;
-
-  const criticalCount = logs.filter(
-    (log) => log.severity === "Critical"
-  ).length;
+  const criticalCount = logs.filter((log) => log.severity === "Critical").length;
+  const emergencyCount = logs.filter((log) => log.emergency_services).length;
+  const followUpCount = logs.filter((log) => log.follow_up_required).length;
 
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-black">
       <div className="mx-auto max-w-7xl">
         <div className="mb-4 rounded-lg bg-white p-4 shadow">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Control Room Dashboard</h1>
-              <p className="text-sm text-gray-600">
-                Live incident reports, review status, severity, and photo evidence.
-              </p>
+            <div className="flex items-center gap-4">
+              <img
+                src="/logo.png"
+                alt="SMSW Logo"
+                className="h-12 w-auto object-contain"
+              />
+
+              <div>
+                <h1 className="text-2xl font-bold">Control Room Dashboard</h1>
+                <p className="text-sm text-gray-600">
+                  Live incident reports, review status, severity, and operational alerts.
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2 text-sm">
@@ -130,6 +188,14 @@ export default function Dashboard() {
 
               <span className="rounded bg-red-200 px-3 py-1 font-semibold text-red-800">
                 Critical: {criticalCount}
+              </span>
+
+              <span className="rounded bg-purple-100 px-3 py-1 font-semibold text-purple-800">
+                Emergency: {emergencyCount}
+              </span>
+
+              <span className="rounded bg-yellow-100 px-3 py-1 font-semibold text-yellow-900">
+                Follow-up: {followUpCount}
               </span>
 
               <span className="rounded bg-blue-100 px-3 py-1 font-semibold text-blue-700">
@@ -163,12 +229,7 @@ export default function Dashboard() {
             const severity = log.severity || "Low";
             const isOpen = status === "Open";
             const isExpanded = expandedId === log.id;
-
-            const isSerious =
-              log.emergency_services ||
-              log.follow_up_required ||
-              severity === "High" ||
-              severity === "Critical";
+            const intelligenceBadges = getIntelligenceBadges(log, severity);
 
             const photos: string[] =
               Array.isArray(log.photo_urls) && log.photo_urls.length > 0
@@ -194,9 +255,16 @@ export default function Dashboard() {
                       {status}
                     </span>
 
-                    {isSerious && (
-                      <div className="mt-1 text-xs font-semibold text-orange-700">
-                        Attention Required
+                    {intelligenceBadges.length > 0 && (
+                      <div className="mt-2 flex flex-col gap-1">
+                        {intelligenceBadges.slice(0, 2).map((badge) => (
+                          <span
+                            key={badge.label}
+                            className={`inline-block rounded px-2 py-1 text-xs font-semibold ${badge.className}`}
+                          >
+                            {badge.label}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -283,7 +351,6 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : log.id)}
                     className="rounded border bg-white px-3 py-2 text-xl font-bold hover:bg-gray-100"
-                    aria-label="Expand report"
                   >
                     {isExpanded ? "▲" : "▼"}
                   </button>
@@ -291,6 +358,22 @@ export default function Dashboard() {
 
                 {isExpanded && (
                   <div className="border-t bg-white p-4">
+                    {intelligenceBadges.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="mb-2 font-bold">Operational Alerts</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {intelligenceBadges.map((badge) => (
+                            <span
+                              key={badge.label}
+                              className={`rounded px-3 py-1 text-sm font-semibold ${badge.className}`}
+                            >
+                              {badge.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <h3 className="mb-2 font-bold">Incident Details</h3>
