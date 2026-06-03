@@ -54,12 +54,12 @@ export default function Dashboard() {
       case "Critical":
         return "bg-red-700 text-white";
       case "High":
-        return "bg-orange-500 text-white";
+        return "bg-orange-100 text-orange-800";
       case "Medium":
-        return "bg-yellow-400 text-black";
+        return "bg-yellow-100 text-yellow-900";
       case "Low":
       default:
-        return "bg-blue-100 text-blue-800";
+        return "bg-slate-100 text-slate-700";
     }
   }
 
@@ -68,12 +68,12 @@ export default function Dashboard() {
       case "Critical":
         return "border-l-4 border-red-700";
       case "High":
-        return "border-l-4 border-orange-500";
+        return "border-l-4 border-orange-400";
       case "Medium":
-        return "border-l-4 border-yellow-400";
+        return "border-l-4 border-yellow-300";
       case "Low":
       default:
-        return "border-l-4 border-blue-300";
+        return "border-l-4 border-slate-300";
     }
   }
 
@@ -92,7 +92,7 @@ export default function Dashboard() {
       badges.push({
         label: "High Severity",
         icon: "↑",
-        className: "bg-orange-100 text-orange-800 border border-orange-300",
+        className: "bg-orange-50 text-orange-800 border border-orange-300",
       });
     }
 
@@ -100,7 +100,7 @@ export default function Dashboard() {
       badges.push({
         label: "Emergency Services",
         icon: "+",
-        className: "bg-red-100 text-red-800 border border-red-300",
+        className: "bg-red-50 text-red-800 border border-red-300",
       });
     }
 
@@ -108,7 +108,7 @@ export default function Dashboard() {
       badges.push({
         label: `CAD: ${log.emergency_service_log_number}`,
         icon: "#",
-        className: "bg-slate-200 text-slate-900 border border-slate-400",
+        className: "bg-slate-100 text-slate-800 border border-slate-300",
       });
     }
 
@@ -116,7 +116,7 @@ export default function Dashboard() {
       badges.push({
         label: "Follow-up Required",
         icon: "!",
-        className: "bg-yellow-100 text-yellow-900 border border-yellow-400",
+        className: "bg-yellow-50 text-yellow-900 border border-yellow-300",
       });
     }
 
@@ -124,7 +124,7 @@ export default function Dashboard() {
       badges.push({
         label: "Supervisor Notified",
         icon: "i",
-        className: "bg-blue-100 text-blue-800 border border-blue-300",
+        className: "bg-blue-50 text-blue-800 border border-blue-300",
       });
     }
 
@@ -132,7 +132,7 @@ export default function Dashboard() {
       badges.push({
         label: "Client Notified",
         icon: "C",
-        className: "bg-purple-100 text-purple-800 border border-purple-300",
+        className: "bg-purple-50 text-purple-800 border border-purple-300",
       });
     }
 
@@ -178,7 +178,7 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-black">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-4 rounded-lg bg-white p-4 shadow">
+        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <img
@@ -188,39 +188,41 @@ export default function Dashboard() {
               />
 
               <div>
-                <h1 className="text-2xl font-bold">Control Room Dashboard</h1>
-                <p className="text-sm text-gray-600">
+                <h1 className="text-2xl font-bold tracking-tight">
+                  Control Room Dashboard
+                </h1>
+                <p className="text-sm text-slate-600">
                   Live incident reports, review status, severity, and operational alerts.
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2 text-sm">
-              <span className="rounded bg-red-100 px-3 py-1 font-semibold text-red-700">
+              <span className="rounded bg-red-50 px-3 py-1 font-semibold text-red-700">
                 Open: {openCount}
               </span>
 
-              <span className="rounded bg-green-100 px-3 py-1 font-semibold text-green-700">
+              <span className="rounded bg-green-50 px-3 py-1 font-semibold text-green-700">
                 Closed: {closedCount}
               </span>
 
-              <span className="rounded bg-orange-100 px-3 py-1 font-semibold text-orange-700">
+              <span className="rounded bg-orange-50 px-3 py-1 font-semibold text-orange-700">
                 High Open: {highOpenCount}
               </span>
 
-              <span className="rounded bg-red-200 px-3 py-1 font-semibold text-red-800">
+              <span className="rounded bg-red-100 px-3 py-1 font-semibold text-red-800">
                 Critical Open: {criticalOpenCount}
               </span>
 
-              <span className="rounded bg-purple-100 px-3 py-1 font-semibold text-purple-800">
+              <span className="rounded bg-purple-50 px-3 py-1 font-semibold text-purple-800">
                 Emergency Open: {emergencyOpenCount}
               </span>
 
-              <span className="rounded bg-yellow-100 px-3 py-1 font-semibold text-yellow-900">
+              <span className="rounded bg-yellow-50 px-3 py-1 font-semibold text-yellow-900">
                 Follow-up Open: {followUpOpenCount}
               </span>
 
-              <span className="rounded bg-blue-100 px-3 py-1 font-semibold text-blue-700">
+              <span className="rounded bg-blue-50 px-3 py-1 font-semibold text-blue-700">
                 Refresh: 5s
               </span>
             </div>
@@ -228,14 +230,14 @@ export default function Dashboard() {
         </div>
 
         <input
-          className="mb-4 w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500"
+          className="mb-4 w-full rounded border border-slate-300 bg-white p-3 text-black placeholder-slate-500 shadow-sm"
           placeholder="Search by site, officer, location, log number, severity, status, service, CAD/log number, or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] gap-3 border-b bg-slate-950 p-3 text-sm font-semibold text-white md:grid">
             <div>Status</div>
             <div>Severity</div>
             <div>Site</div>
@@ -263,11 +265,11 @@ export default function Dashboard() {
             return (
               <div
                 key={log.id}
-                className={`border-b ${getSeverityBorder(severity)} ${
-                  isOpen ? "bg-red-50" : "bg-green-50"
-                }`}
+                className={`border-b border-slate-200 ${getSeverityBorder(
+                  severity
+                )} ${isOpen ? "bg-red-50" : "bg-white"}`}
               >
-                <div className="grid gap-3 p-4 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] md:items-center">
+                <div className="grid gap-3 p-3 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] md:items-center">
                   <div className="flex w-[150px] flex-col items-start gap-1.5">
                     <span
                       className={`inline-flex h-7 w-[150px] items-center rounded px-2 text-xs font-bold text-white ${
@@ -286,7 +288,7 @@ export default function Dashboard() {
                           key={badge.label}
                           className={`inline-flex h-7 w-[150px] items-center rounded px-2 text-[11px] font-semibold leading-tight ${badge.className}`}
                         >
-                          <span className="mr-2 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/60 text-[10px] font-bold">
+                          <span className="mr-2 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/70 text-[10px] font-bold">
                             {badge.icon}
                           </span>
                           <span className="truncate">{badge.label}</span>
@@ -296,7 +298,7 @@ export default function Dashboard() {
 
                   <div>
                     <span
-                      className={`inline-flex min-w-[48px] justify-center rounded px-3 py-1 text-xs font-bold ${getSeverityClasses(
+                      className={`inline-flex min-w-[56px] justify-center rounded px-3 py-1 text-xs font-bold ${getSeverityClasses(
                         severity
                       )}`}
                     >
@@ -308,7 +310,7 @@ export default function Dashboard() {
                     <p className="font-semibold">
                       {log.site_location || "Unknown Site"}
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-slate-600">
                       Site ID: {log.site_id || "N/A"} | Log:{" "}
                       {log.log_number || "N/A"}
                     </p>
@@ -316,14 +318,14 @@ export default function Dashboard() {
 
                   <div>
                     <p>{log.officer_name || "N/A"}</p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-slate-600">
                       {log.officer_id || ""}
                     </p>
                   </div>
 
                   <div className="text-sm">
                     <p>{log.incident_date || "N/A"}</p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-slate-600">
                       {log.incident_time || ""}
                     </p>
                   </div>
@@ -340,7 +342,7 @@ export default function Dashboard() {
                       onClick={() =>
                         window.open(`/dashboard/report/${log.id}`, "_blank")
                       }
-                      className="rounded bg-black px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-gray-800"
+                      className="rounded bg-slate-950 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800"
                     >
                       Report
                     </button>
@@ -349,7 +351,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         onClick={() => updateStatus(log.id, "Closed")}
-                        className="rounded bg-green-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
+                        className="rounded bg-green-700 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-green-800"
                       >
                         Close
                       </button>
@@ -357,7 +359,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         onClick={() => updateStatus(log.id, "Open")}
-                        className="rounded bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+                        className="rounded bg-slate-700 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800"
                       >
                         Reopen
                       </button>
@@ -375,14 +377,14 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : log.id)}
-                    className="flex h-9 w-9 items-center justify-center rounded border bg-white text-sm font-bold hover:bg-gray-100"
+                    className="flex h-9 w-9 items-center justify-center rounded border border-slate-400 bg-white text-sm font-bold hover:bg-slate-100"
                   >
                     {isExpanded ? "▲" : "▼"}
                   </button>
                 </div>
 
                 {isExpanded && (
-                  <div className="border-t bg-white p-4">
+                  <div className="border-t border-slate-200 bg-slate-50 p-4">
                     {intelligenceBadges.length > 0 && (
                       <div className="mb-4">
                         <h3 className="mb-2 font-bold">Operational Alerts</h3>
@@ -477,14 +479,14 @@ export default function Dashboard() {
 
                     <div className="mt-4">
                       <h3 className="mb-2 font-bold">Description</h3>
-                      <p className="rounded border bg-gray-50 p-3">
+                      <p className="rounded border border-slate-200 bg-white p-3">
                         {log.description || "No description provided"}
                       </p>
                     </div>
 
                     <div className="mt-4">
                       <h3 className="mb-2 font-bold">Action Taken</h3>
-                      <p className="rounded border bg-gray-50 p-3">
+                      <p className="rounded border border-slate-200 bg-white p-3">
                         {log.action_taken || "No action recorded"}
                       </p>
                     </div>
@@ -505,7 +507,7 @@ export default function Dashboard() {
                               <img
                                 src={photo}
                                 alt={`Incident photo ${index + 1}`}
-                                className="h-24 w-24 cursor-pointer rounded border bg-white object-contain p-1 hover:opacity-80"
+                                className="h-24 w-24 cursor-pointer rounded border border-slate-300 bg-white object-contain p-1 hover:opacity-80"
                               />
                             </button>
                           ))}
