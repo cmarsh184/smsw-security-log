@@ -45,6 +45,10 @@ export default function Dashboard() {
     }
   }
 
+  function isLogOpen(log: any) {
+    return (log.status || "Open") === "Open";
+  }
+
   function getSeverityClasses(severity: string) {
     switch (severity) {
       case "Critical":
@@ -151,12 +155,20 @@ export default function Dashboard() {
         .includes(search.toLowerCase())
   );
 
-  const openCount = logs.filter((log) => (log.status || "Open") === "Open").length;
+  const openLogs = logs.filter((log) => isLogOpen(log));
+
+  const openCount = openLogs.length;
   const closedCount = logs.filter((log) => log.status === "Closed").length;
-  const highCount = logs.filter((log) => log.severity === "High").length;
-  const criticalCount = logs.filter((log) => log.severity === "Critical").length;
-  const emergencyCount = logs.filter((log) => log.emergency_services).length;
-  const followUpCount = logs.filter((log) => log.follow_up_required).length;
+  const highOpenCount = openLogs.filter((log) => log.severity === "High").length;
+  const criticalOpenCount = openLogs.filter(
+    (log) => log.severity === "Critical"
+  ).length;
+  const emergencyOpenCount = openLogs.filter(
+    (log) => log.emergency_services
+  ).length;
+  const followUpOpenCount = openLogs.filter(
+    (log) => log.follow_up_required
+  ).length;
 
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-black">
@@ -188,19 +200,19 @@ export default function Dashboard() {
               </span>
 
               <span className="rounded bg-orange-100 px-3 py-1 font-semibold text-orange-700">
-                High: {highCount}
+                High Open: {highOpenCount}
               </span>
 
               <span className="rounded bg-red-200 px-3 py-1 font-semibold text-red-800">
-                Critical: {criticalCount}
+                Critical Open: {criticalOpenCount}
               </span>
 
               <span className="rounded bg-purple-100 px-3 py-1 font-semibold text-purple-800">
-                Emergency: {emergencyCount}
+                Emergency Open: {emergencyOpenCount}
               </span>
 
               <span className="rounded bg-yellow-100 px-3 py-1 font-semibold text-yellow-900">
-                Follow-up: {followUpCount}
+                Follow-up Open: {followUpOpenCount}
               </span>
 
               <span className="rounded bg-blue-100 px-3 py-1 font-semibold text-blue-700">
