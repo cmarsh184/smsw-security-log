@@ -283,7 +283,7 @@ export default function Dashboard() {
                 >
                   <span className="font-bold">{stat.icon}</span>
                   <span>{stat.label}</span>
-                  <span className="rounded bg-white/70 px-1.5 py-0.5 font-bold">
+                  <span className="rounded bg-white/80 px-1.5 py-0.5 font-black">
                     {stat.value}
                   </span>
                 </span>
@@ -292,7 +292,7 @@ export default function Dashboard() {
               {lastUpdated && (
                 <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
                   Updated
-                  <span className="rounded bg-white/70 px-1.5 py-0.5 font-bold">
+                  <span className="rounded bg-white/80 px-1.5 py-0.5 font-black">
                     {lastUpdated}
                   </span>
                 </span>
@@ -315,42 +315,44 @@ export default function Dashboard() {
 
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-800">
-                  Critical: {criticalOpenCount}
+                  Critical {criticalOpenCount}
                 </span>
 
                 <span className="rounded-md border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-800">
-                  Emergency: {emergencyOpenCount}
+                  Emergency {emergencyOpenCount}
                 </span>
 
                 <span className="rounded-md border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-900">
-                  Follow-up: {followUpOpenCount}
+                  Follow-up {followUpOpenCount}
                 </span>
               </div>
             </div>
 
-            <div className="grid gap-2 md:grid-cols-3">
+            <div className="flex flex-col gap-2">
               {priorityLogs.map((log) => (
                 <button
                   key={log.id}
                   type="button"
                   onClick={() => setExpandedId(log.id)}
-                  className="rounded-md border border-slate-200 bg-slate-50 p-3 text-left hover:bg-slate-100"
+                  className="flex flex-col gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-left hover:bg-slate-100 md:flex-row md:items-center md:justify-between"
                 >
-                  <div className="mb-1 flex items-center justify-between gap-2">
-                    <span className="rounded bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
+                  <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center md:gap-3">
+                    <span className="w-fit shrink-0 rounded bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
                       {getPriorityReason(log)}
                     </span>
-                    <span className="text-[11px] text-slate-500">
-                      {log.incident_time || ""}
+
+                    <span className="shrink-0 text-sm font-semibold text-slate-900">
+                      {log.site_location || "Unknown Site"}
+                    </span>
+
+                    <span className="line-clamp-1 text-xs leading-4 text-slate-600">
+                      {log.description || "No description provided"}
                     </span>
                   </div>
 
-                  <p className="text-sm font-semibold text-slate-900">
-                    {log.site_location || "Unknown Site"}
-                  </p>
-                  <p className="line-clamp-2 text-xs leading-4 text-slate-600">
-                    {log.description || "No description provided"}
-                  </p>
+                  <span className="shrink-0 text-[11px] font-semibold text-slate-500">
+                    {log.incident_time || ""}
+                  </span>
                 </button>
               ))}
             </div>
@@ -376,17 +378,17 @@ export default function Dashboard() {
           </label>
 
           <div className="hidden gap-4 text-xs font-semibold text-slate-600 md:flex">
-            <span>Showing: {filteredLogs.length}</span>
-            <span>Total reports: {logs.length}</span>
-            <span>Open: {openCount}</span>
-            <span>Critical: {criticalOpenCount}</span>
-            <span>Emergency: {emergencyOpenCount}</span>
-            <span>Follow-up: {followUpOpenCount}</span>
+            <span>Showing {filteredLogs.length}</span>
+            <span>Total {logs.length}</span>
+            <span>Open {openCount}</span>
+            <span>Critical {criticalOpenCount}</span>
+            <span>Emergency {emergencyOpenCount}</span>
+            <span>Follow-up {followUpOpenCount}</span>
           </div>
         </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] gap-3 border-b bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white md:grid">
+          <div className="hidden grid-cols-[180px_90px_1.35fr_0.9fr_0.85fr_2.4fr_120px_45px] gap-3 border-b bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white md:grid">
             <div>Status</div>
             <div>Severity</div>
             <div>Site</div>
@@ -418,7 +420,7 @@ export default function Dashboard() {
                   severity
                 )} ${getRowBackground(isOpen, severity)}`}
               >
-                <div className="grid gap-3 px-3 py-2.5 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] md:items-center">
+                <div className="grid gap-3 px-3 py-2.5 md:grid-cols-[180px_90px_1.35fr_0.9fr_0.85fr_2.4fr_120px_45px] md:items-center">
                   <div className="flex w-[150px] flex-col items-start gap-1.5">
                     <span
                       className={`inline-flex h-7 w-[150px] items-center rounded px-2 text-xs font-bold text-white ${
