@@ -92,7 +92,9 @@ export default function Dashboard() {
 
     if (log.emergency_services) {
       badges.push({
-        label: `Emergency Services${log.emergency_service_type ? `: ${log.emergency_service_type}` : ""}`,
+        label: `Emergency Services${
+          log.emergency_service_type ? `: ${log.emergency_service_type}` : ""
+        }`,
         className: "bg-red-100 text-red-800 border border-red-300",
       });
     }
@@ -134,16 +136,19 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredLogs = logs.filter((log) =>
-    log.site_location?.toLowerCase().includes(search.toLowerCase()) ||
-    log.officer_name?.toLowerCase().includes(search.toLowerCase()) ||
-    log.description?.toLowerCase().includes(search.toLowerCase()) ||
-    log.exact_location?.toLowerCase().includes(search.toLowerCase()) ||
-    log.log_number?.toLowerCase().includes(search.toLowerCase()) ||
-    log.status?.toLowerCase().includes(search.toLowerCase()) ||
-    log.severity?.toLowerCase().includes(search.toLowerCase()) ||
-    log.emergency_service_type?.toLowerCase().includes(search.toLowerCase()) ||
-    log.emergency_service_log_number?.toLowerCase().includes(search.toLowerCase())
+  const filteredLogs = logs.filter(
+    (log) =>
+      log.site_location?.toLowerCase().includes(search.toLowerCase()) ||
+      log.officer_name?.toLowerCase().includes(search.toLowerCase()) ||
+      log.description?.toLowerCase().includes(search.toLowerCase()) ||
+      log.exact_location?.toLowerCase().includes(search.toLowerCase()) ||
+      log.log_number?.toLowerCase().includes(search.toLowerCase()) ||
+      log.status?.toLowerCase().includes(search.toLowerCase()) ||
+      log.severity?.toLowerCase().includes(search.toLowerCase()) ||
+      log.emergency_service_type?.toLowerCase().includes(search.toLowerCase()) ||
+      log.emergency_service_log_number
+        ?.toLowerCase()
+        .includes(search.toLowerCase())
   );
 
   const openCount = logs.filter((log) => (log.status || "Open") === "Open").length;
@@ -213,7 +218,7 @@ export default function Dashboard() {
         />
 
         <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="hidden grid-cols-[120px_110px_1.4fr_1fr_1fr_2fr_160px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
+          <div className="hidden grid-cols-[150px_110px_1.4fr_1fr_1fr_2fr_160px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
             <div>Status</div>
             <div>Severity</div>
             <div>Site</div>
@@ -245,10 +250,10 @@ export default function Dashboard() {
                   isOpen ? "bg-red-50" : "bg-green-50"
                 }`}
               >
-                <div className="grid gap-3 p-3 md:grid-cols-[120px_110px_1.4fr_1fr_1fr_2fr_160px_70px] md:items-center">
-                  <div>
+                <div className="grid gap-3 p-3 md:grid-cols-[150px_110px_1.4fr_1fr_1fr_2fr_160px_70px] md:items-center">
+                  <div className="flex flex-col items-start gap-2">
                     <span
-                      className={`inline-block rounded px-3 py-1 text-xs font-bold text-white ${
+                      className={`inline-flex min-w-[66px] items-center justify-center rounded px-3 py-1 text-xs font-bold text-white ${
                         isOpen ? "bg-red-600" : "bg-green-600"
                       }`}
                     >
@@ -256,11 +261,11 @@ export default function Dashboard() {
                     </span>
 
                     {intelligenceBadges.length > 0 && (
-                      <div className="mt-2 flex flex-col gap-1">
+                      <div className="flex flex-col items-start gap-1">
                         {intelligenceBadges.slice(0, 2).map((badge) => (
                           <span
                             key={badge.label}
-                            className={`inline-block rounded px-2 py-1 text-xs font-semibold ${badge.className}`}
+                            className={`inline-flex max-w-[135px] items-center rounded px-2 py-1 text-[11px] font-semibold leading-tight ${badge.className}`}
                           >
                             {badge.label}
                           </span>
@@ -400,8 +405,7 @@ export default function Dashboard() {
                         </p>
 
                         <p>
-                          <strong>Duty Role:</strong>{" "}
-                          {log.duty_role || "N/A"}
+                          <strong>Duty Role:</strong> {log.duty_role || "N/A"}
                         </p>
 
                         <p>
