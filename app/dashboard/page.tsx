@@ -54,6 +54,19 @@ export default function Dashboard() {
     return (log.status || "Open") === "Open";
   }
 
+  function formatTime(value: string | null | undefined) {
+    if (!value) return "N/A";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "N/A";
+
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   function getSeverityClasses(severity: string) {
     switch (severity) {
       case "Critical":
@@ -164,6 +177,34 @@ export default function Dashboard() {
     return "Open Report";
   }
 
+  function getActivityType(log: any) {
+    if (isLogOpen(log) && log.severity === "Critical") return "Critical incident logged";
+    if (isLogOpen(log) && log.emergency_services) return "Emergency services involved";
+    if (isLogOpen(log) && log.follow_up_required) return "Follow-up required";
+    if (isLogOpen(log)) return "Open report logged";
+    return "Report closed";
+  }
+
+  function getActivityClasses(log: any) {
+    if (isLogOpen(log) && log.severity === "Critical") {
+      return "border-red-200 bg-red-50 text-red-800";
+    }
+
+    if (isLogOpen(log) && log.emergency_services) {
+      return "border-purple-200 bg-purple-50 text-purple-800";
+    }
+
+    if (isLogOpen(log) && log.follow_up_required) {
+      return "border-yellow-200 bg-yellow-50 text-yellow-900";
+    }
+
+    if (isLogOpen(log)) {
+      return "border-orange-200 bg-orange-50 text-orange-800";
+    }
+
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+
   useEffect(() => {
     fetchLogs();
     const interval = setInterval(fetchLogs, 5000);
@@ -194,6 +235,14 @@ export default function Dashboard() {
         log.follow_up_required
     )
     .slice(0, 3);
+
+  const activityLogs = [...logs]
+    .sort((a, b) => {
+      const aTime = new Date(a.created_at || 0).getTime();
+      const bTime = new Date(b.created_at || 0).getTime();
+      return bTime - aTime;
+    })
+    .slice(0, 5);
 
   const filteredLogs = logs.filter((log) => {
     const searchText = search.toLowerCase();
@@ -377,6 +426,60 @@ export default function Dashboard() {
                   {lastUpdated}
                 </span>
               </span>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">
+                Control Room Activity Feed
+              </h2>
+              <p className="text-xs text-slate-600">
+                Latest incident activity from the live reporting system.
+              </p>
+            </div>
+
+            <span className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-600">
+              Live Feed
+            </span>
+          </div>
+
+          <div className="divide-y divide-slate-200">
+            {activityLogs.map((log) => (
+              <button
+                key={log.id}
+                type="button"
+                onClick={() => setExpandedId(log.id)}
+                className="flex w-full flex-col gap-1 py-2 text-left hover:bg-slate-50 md:flex-row md:items-center md:gap-3"
+              >
+                <span className="w-14 shrink-0 text-xs font-bold text-slate-500">
+                  {formatTime(log.created_at)}
+                </span>
+
+                <span
+                  className={`w-fit shrink-0 rounded border px-2 py-0.5 text-[11px] font-bold ${getActivityClasses(
+                    log
+                  )}`}
+                >
+                  {getActivityType(log)}
+                </span>
+
+                <span className="shrink-0 text-xs font-semibold text-slate-900 md:w-44">
+                  {log.site_location || "Unknown Site"}
+                </span>
+
+                <span className="line-clamp-1 text-xs text-slate-600">
+                  {log.description || "No description provided"}
+                </span>
+              </button>
+            ))}
+
+            {activityLogs.length === 0 && (
+              <div className="py-3 text-sm text-slate-600">
+                No activity to show yet.
+              </div>
             )}
           </div>
         </div>
