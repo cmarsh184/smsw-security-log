@@ -83,29 +83,31 @@ export default function Dashboard() {
     if (severity === "Critical") {
       badges.push({
         label: "Critical Incident",
-        className: "bg-red-700 text-white",
+        icon: "!",
+        className: "bg-red-700 text-white border border-red-800",
       });
     }
 
     if (severity === "High") {
       badges.push({
         label: "High Severity",
-        className: "bg-orange-500 text-white",
+        icon: "↑",
+        className: "bg-orange-100 text-orange-800 border border-orange-300",
       });
     }
 
     if (log.emergency_services) {
       badges.push({
-        label: `Emergency Services${
-          log.emergency_service_type ? `: ${log.emergency_service_type}` : ""
-        }`,
+        label: "Emergency Services",
+        icon: "+",
         className: "bg-red-100 text-red-800 border border-red-300",
       });
     }
 
     if (log.emergency_service_log_number) {
       badges.push({
-        label: `CAD/Log: ${log.emergency_service_log_number}`,
+        label: `CAD: ${log.emergency_service_log_number}`,
+        icon: "#",
         className: "bg-slate-200 text-slate-900 border border-slate-400",
       });
     }
@@ -113,6 +115,7 @@ export default function Dashboard() {
     if (log.follow_up_required) {
       badges.push({
         label: "Follow-up Required",
+        icon: "!",
         className: "bg-yellow-100 text-yellow-900 border border-yellow-400",
       });
     }
@@ -120,6 +123,7 @@ export default function Dashboard() {
     if (log.supervisor_notified) {
       badges.push({
         label: "Supervisor Notified",
+        icon: "i",
         className: "bg-blue-100 text-blue-800 border border-blue-300",
       });
     }
@@ -127,6 +131,7 @@ export default function Dashboard() {
     if (log.client_notified) {
       badges.push({
         label: "Client Notified",
+        icon: "C",
         className: "bg-purple-100 text-purple-800 border border-purple-300",
       });
     }
@@ -230,7 +235,7 @@ export default function Dashboard() {
         />
 
         <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="hidden grid-cols-[150px_110px_1.4fr_1fr_1fr_2fr_130px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
+          <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
             <div>Status</div>
             <div>Severity</div>
             <div>Site</div>
@@ -262,33 +267,36 @@ export default function Dashboard() {
                   isOpen ? "bg-red-50" : "bg-green-50"
                 }`}
               >
-                <div className="grid gap-3 p-3 md:grid-cols-[150px_110px_1.4fr_1fr_1fr_2fr_130px_70px] md:items-center">
-                  <div className="flex flex-col items-start gap-2">
+                <div className="grid gap-3 p-4 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_70px] md:items-center">
+                  <div className="flex w-[150px] flex-col items-start gap-1.5">
                     <span
-                      className={`inline-flex min-w-[66px] items-center justify-center rounded px-3 py-1 text-xs font-bold text-white ${
+                      className={`inline-flex h-7 w-[150px] items-center rounded px-2 text-xs font-bold text-white ${
                         isOpen ? "bg-red-600" : "bg-green-600"
                       }`}
                     >
+                      <span className="mr-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/25 text-[10px]">
+                        {isOpen ? "!" : "✓"}
+                      </span>
                       {status}
                     </span>
 
-                    {intelligenceBadges.length > 0 && (
-                      <div className="flex flex-col items-start gap-1">
-                        {intelligenceBadges.slice(0, 2).map((badge) => (
-                          <span
-                            key={badge.label}
-                            className={`inline-flex max-w-[135px] items-center rounded px-2 py-1 text-[11px] font-semibold leading-tight ${badge.className}`}
-                          >
-                            {badge.label}
+                    {intelligenceBadges.length > 0 &&
+                      intelligenceBadges.slice(0, 3).map((badge) => (
+                        <span
+                          key={badge.label}
+                          className={`inline-flex h-7 w-[150px] items-center rounded px-2 text-[11px] font-semibold leading-tight ${badge.className}`}
+                        >
+                          <span className="mr-2 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/60 text-[10px] font-bold">
+                            {badge.icon}
                           </span>
-                        ))}
-                      </div>
-                    )}
+                          <span className="truncate">{badge.label}</span>
+                        </span>
+                      ))}
                   </div>
 
                   <div>
                     <span
-                      className={`inline-block rounded px-3 py-1 text-xs font-bold ${getSeverityClasses(
+                      className={`inline-flex min-w-[48px] justify-center rounded px-3 py-1 text-xs font-bold ${getSeverityClasses(
                         severity
                       )}`}
                     >
@@ -326,7 +334,7 @@ export default function Dashboard() {
                     </p>
                   </div>
 
-                  <div className="flex max-w-[110px] flex-col gap-1">
+                  <div className="flex max-w-[105px] flex-col gap-1">
                     <button
                       type="button"
                       onClick={() =>
@@ -384,7 +392,7 @@ export default function Dashboard() {
                               key={badge.label}
                               className={`rounded px-3 py-1 text-sm font-semibold ${badge.className}`}
                             >
-                              {badge.label}
+                              {badge.icon} {badge.label}
                             </span>
                           ))}
                         </div>
