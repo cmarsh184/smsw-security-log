@@ -28,6 +28,34 @@ export default function Dashboard() {
     else alert("Could not update status: " + error.message);
   }
 
+  function getSeverityClasses(severity: string) {
+    switch (severity) {
+      case "Critical":
+        return "bg-red-700 text-white";
+      case "High":
+        return "bg-orange-500 text-white";
+      case "Medium":
+        return "bg-yellow-400 text-black";
+      case "Low":
+      default:
+        return "bg-blue-100 text-blue-800";
+    }
+  }
+
+  function getSeverityBorder(severity: string) {
+    switch (severity) {
+      case "Critical":
+        return "border-l-4 border-red-700";
+      case "High":
+        return "border-l-4 border-orange-500";
+      case "Medium":
+        return "border-l-4 border-yellow-400";
+      case "Low":
+      default:
+        return "border-l-4 border-blue-300";
+    }
+  }
+
   useEffect(() => {
     fetchLogs();
     const interval = setInterval(fetchLogs, 5000);
@@ -40,11 +68,23 @@ export default function Dashboard() {
     log.description?.toLowerCase().includes(search.toLowerCase()) ||
     log.exact_location?.toLowerCase().includes(search.toLowerCase()) ||
     log.log_number?.toLowerCase().includes(search.toLowerCase()) ||
-    log.status?.toLowerCase().includes(search.toLowerCase())
+    log.status?.toLowerCase().includes(search.toLowerCase()) ||
+    log.severity?.toLowerCase().includes(search.toLowerCase()) ||
+    log.emergency_service_type?.toLowerCase().includes(search.toLowerCase()) ||
+    log.emergency_service_log_number?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openCount = logs.filter((log) => (log.status || "Open") === "Open").length;
+  const openCount = logs.filter(
+    (log) => (log.status || "Open") === "Open"
+  ).length;
+
   const closedCount = logs.filter((log) => log.status === "Closed").length;
+
+  const highCount = logs.filter((log) => log.severity === "High").length;
+
+  const criticalCount = logs.filter(
+    (log) => log.severity === "Critical"
+  ).length;
 
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-black">
@@ -54,7 +94,7 @@ export default function Dashboard() {
             <div>
               <h1 className="text-2xl font-bold">Control Room Dashboard</h1>
               <p className="text-sm text-gray-600">
-                Live incident reports, review status, and photo evidence.
+                Live incident reports, review status, severity, and photo evidence.
               </p>
             </div>
 
@@ -62,9 +102,19 @@ export default function Dashboard() {
               <span className="rounded bg-red-100 px-3 py-1 font-semibold text-red-700">
                 Open: {openCount}
               </span>
+
               <span className="rounded bg-green-100 px-3 py-1 font-semibold text-green-700">
                 Closed: {closedCount}
               </span>
+
+              <span className="rounded bg-orange-100 px-3 py-1 font-semibold text-orange-700">
+                High: {highCount}
+              </span>
+
+              <span className="rounded bg-red-200 px-3 py-1 font-semibold text-red-800">
+                Critical: {criticalCount}
+              </span>
+
               <span className="rounded bg-blue-100 px-3 py-1 font-semibold text-blue-700">
                 Refresh: 5s
               </span>
@@ -74,14 +124,15 @@ export default function Dashboard() {
 
         <input
           className="mb-4 w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500"
-          placeholder="Search by site, officer, location, log number, status, or description..."
+          placeholder="Search by site, officer, location, log number, severity, status, service, CAD/log number, or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
         <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="hidden grid-cols-[120px_1.5fr_1fr_1fr_2fr_140px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
+          <div className="hidden grid-cols-[120px_110px_1.4fr_1fr_1fr_2fr_140px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
             <div>Status</div>
+            <div>Severity</div>
             <div>Site</div>
             <div>Officer</div>
             <div>Incident Time</div>
@@ -92,9 +143,15 @@ export default function Dashboard() {
 
           {filteredLogs.map((log) => {
             const status = log.status || "Open";
+            const severity = log.severity || "Low";
             const isOpen = status === "Open";
             const isExpanded = expandedId === log.id;
-            const isSerious = log.emergency_services || log.follow_up_required;
+
+            const isSerious =
+              log.emergency_services ||
+              log.follow_up_required ||
+              severity === "High" ||
+              severity === "Critical";
 
             const photos: string[] =
               Array.isArray(log.photo_urls) && log.photo_urls.length > 0
@@ -106,11 +163,11 @@ export default function Dashboard() {
             return (
               <div
                 key={log.id}
-                className={`border-b ${
+                className={`border-b ${getSeverityBorder(severity)} ${
                   isOpen ? "bg-red-50" : "bg-green-50"
                 }`}
               >
-                <div className="grid gap-3 p-3 md:grid-cols-[120px_1.5fr_1fr_1fr_2fr_140px_70px] md:items-center">
+                <div className="grid gap-3 p-3 md:grid-cols-[120px_110px_1.4fr_1fr_1fr_2fr_140px_70px] md:items-center">
                   <div>
                     <span
                       className={`inline-block rounded px-3 py-1 text-xs font-bold text-white ${
@@ -125,6 +182,16 @@ export default function Dashboard() {
                         Attention Required
                       </div>
                     )}
+                  </div>
+
+                  <div>
+                    <span
+                      className={`inline-block rounded px-3 py-1 text-xs font-bold ${getSeverityClasses(
+                        severity
+                      )}`}
+                    >
+                      {severity}
+                    </span>
                   </div>
 
                   <div>
@@ -189,9 +256,7 @@ export default function Dashboard() {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setExpandedId(isExpanded ? null : log.id)
-                    }
+                    onClick={() => setExpandedId(isExpanded ? null : log.id)}
                     className="rounded border bg-white px-3 py-2 text-xl font-bold hover:bg-gray-100"
                     aria-label="Expand report"
                   >
@@ -204,18 +269,77 @@ export default function Dashboard() {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <h3 className="mb-2 font-bold">Incident Details</h3>
-                        <p><strong>Exact Location:</strong> {log.exact_location || "N/A"}</p>
-                        <p><strong>Persons Involved:</strong> {log.persons_involved || "N/A"}</p>
-                        <p><strong>Duty Role:</strong> {log.duty_role || "N/A"}</p>
-                        <p><strong>Created:</strong> {new Date(log.created_at).toLocaleString()}</p>
+
+                        <p>
+                          <strong>Severity:</strong>{" "}
+                          <span
+                            className={`inline-block rounded px-2 py-1 text-xs font-bold ${getSeverityClasses(
+                              severity
+                            )}`}
+                          >
+                            {severity}
+                          </span>
+                        </p>
+
+                        <p>
+                          <strong>Exact Location:</strong>{" "}
+                          {log.exact_location || "N/A"}
+                        </p>
+
+                        <p>
+                          <strong>Persons Involved:</strong>{" "}
+                          {log.persons_involved || "N/A"}
+                        </p>
+
+                        <p>
+                          <strong>Duty Role:</strong>{" "}
+                          {log.duty_role || "N/A"}
+                        </p>
+
+                        <p>
+                          <strong>Created:</strong>{" "}
+                          {new Date(log.created_at).toLocaleString()}
+                        </p>
                       </div>
 
                       <div>
-                        <h3 className="mb-2 font-bold">Notifications & Actions</h3>
-                        <p><strong>Emergency Services:</strong> {log.emergency_services ? "Yes" : "No"}</p>
-                        <p><strong>Supervisor Notified:</strong> {log.supervisor_notified ? "Yes" : "No"}</p>
-                        <p><strong>Client Notified:</strong> {log.client_notified ? "Yes" : "No"}</p>
-                        <p><strong>Follow-up Required:</strong> {log.follow_up_required ? "Yes" : "No"}</p>
+                        <h3 className="mb-2 font-bold">
+                          Notifications & Actions
+                        </h3>
+
+                        <p>
+                          <strong>Emergency Services:</strong>{" "}
+                          {log.emergency_services ? "Yes" : "No"}
+                        </p>
+
+                        {log.emergency_services && (
+                          <>
+                            <p>
+                              <strong>Service:</strong>{" "}
+                              {log.emergency_service_type || "N/A"}
+                            </p>
+
+                            <p>
+                              <strong>CAD / Log Number:</strong>{" "}
+                              {log.emergency_service_log_number || "N/A"}
+                            </p>
+                          </>
+                        )}
+
+                        <p>
+                          <strong>Supervisor Notified:</strong>{" "}
+                          {log.supervisor_notified ? "Yes" : "No"}
+                        </p>
+
+                        <p>
+                          <strong>Client Notified:</strong>{" "}
+                          {log.client_notified ? "Yes" : "No"}
+                        </p>
+
+                        <p>
+                          <strong>Follow-up Required:</strong>{" "}
+                          {log.follow_up_required ? "Yes" : "No"}
+                        </p>
                       </div>
                     </div>
 
