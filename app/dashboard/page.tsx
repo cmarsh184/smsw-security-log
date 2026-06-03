@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 export default function Dashboard() {
@@ -9,6 +9,8 @@ export default function Dashboard() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [selectedSite, setSelectedSite] = useState("All Sites");
+  const [showOpenOnly, setShowOpenOnly] = useState(false);
 
   async function fetchLogs() {
     const { data, error } = await supabase
@@ -81,6 +83,18 @@ export default function Dashboard() {
     }
   }
 
+  function getRowBackground(isOpen: boolean, severity: string) {
+    if (isOpen && severity === "Critical") {
+      return "bg-gradient-to-r from-red-50 via-red-50 to-white";
+    }
+
+    if (isOpen) {
+      return "bg-red-50";
+    }
+
+    return "bg-slate-50";
+  }
+
   function getIntelligenceBadges(log: any, severity: string) {
     const badges = [];
 
@@ -149,20 +163,17 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredLogs = logs.filter(
-    (log) =>
-      log.site_location?.toLowerCase().includes(search.toLowerCase()) ||
-      log.officer_name?.toLowerCase().includes(search.toLowerCase()) ||
-      log.description?.toLowerCase().includes(search.toLowerCase()) ||
-      log.exact_location?.toLowerCase().includes(search.toLowerCase()) ||
-      log.log_number?.toLowerCase().includes(search.toLowerCase()) ||
-      log.status?.toLowerCase().includes(search.toLowerCase()) ||
-      log.severity?.toLowerCase().includes(search.toLowerCase()) ||
-      log.emergency_service_type?.toLowerCase().includes(search.toLowerCase()) ||
-      log.emergency_service_log_number
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
-  );
+  const siteOptions = useMemo(() => {
+    const uniqueSites = Array.from(
+      new Set(
+        logs
+          .map((log) => log.site_location)
+          .filter((site) => typeof site === "string" && site.trim().length > 0)
+      )
+    );
+
+    return ["All Sites", ...uniqueSites];
+  }, [logs]);
 
   const openLogs = logs.filter((log) => isLogOpen(log));
 
@@ -179,38 +190,68 @@ export default function Dashboard() {
     (log) => log.follow_up_required
   ).length;
 
+  const filteredLogs = logs.filter((log) => {
+    const searchText = search.toLowerCase();
+    const matchesSearch =
+      log.site_location?.toLowerCase().includes(searchText) ||
+      log.officer_name?.toLowerCase().includes(searchText) ||
+      log.description?.toLowerCase().includes(searchText) ||
+      log.exact_location?.toLowerCase().includes(searchText) ||
+      log.log_number?.toLowerCase().includes(searchText) ||
+      log.status?.toLowerCase().includes(searchText) ||
+      log.severity?.toLowerCase().includes(searchText) ||
+      log.emergency_service_type?.toLowerCase().includes(searchText) ||
+      log.emergency_service_log_number?.toLowerCase().includes(searchText);
+
+    const matchesSite =
+      selectedSite === "All Sites" || log.site_location === selectedSite;
+
+    const matchesOpenOnly = !showOpenOnly || isLogOpen(log);
+
+    return matchesSearch && matchesSite && matchesOpenOnly;
+  });
+
   const stats = [
     {
       label: "Open",
+      icon: "●",
       value: openCount,
       className: "border-red-200 bg-red-50 text-red-700",
     },
     {
       label: "Closed",
+      icon: "✓",
       value: closedCount,
       className: "border-green-200 bg-green-50 text-green-700",
     },
     {
       label: "High",
+      icon: "↑",
       value: highOpenCount,
       className: "border-orange-200 bg-orange-50 text-orange-700",
     },
     {
       label: "Critical",
+      icon: "!",
       value: criticalOpenCount,
       className: "border-red-200 bg-red-100 text-red-800",
     },
     {
       label: "Emergency",
+      icon: "+",
       value: emergencyOpenCount,
       className: "border-purple-200 bg-purple-50 text-purple-800",
     },
     {
       label: "Follow-up",
+      icon: "!",
       value: followUpOpenCount,
       className: "border-yellow-200 bg-yellow-50 text-yellow-900",
     },
   ];
+
+  const hasActivePriority =
+    criticalOpenCount > 0 || emergencyOpenCount > 0 || followUpOpenCount > 0;
 
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-black">
@@ -238,6 +279,7 @@ export default function Dashboard() {
                   key={stat.label}
                   className={`inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-xs font-semibold ${stat.className}`}
                 >
+                  <span className="font-bold">{stat.icon}</span>
                   <span>{stat.label}</span>
                   <span className="rounded bg-white/70 px-1.5 py-0.5 font-bold">
                     {stat.value}
@@ -257,12 +299,70 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {hasActivePriority && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-white p-3 shadow-sm">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">
+                  Active Priority
+                </h2>
+                <p className="text-xs text-slate-600">
+                  Live incidents requiring operational attention.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-800">
+                  Critical: {criticalOpenCount}
+                </span>
+
+                <span className="rounded-md border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-800">
+                  Emergency: {emergencyOpenCount}
+                </span>
+
+                <span className="rounded-md border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-900">
+                  Follow-up: {followUpOpenCount}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <input
-          className="mb-4 w-full rounded border border-slate-300 bg-white p-3 text-sm text-black placeholder-slate-500 shadow-sm"
+          className="mb-3 w-full rounded border border-slate-300 bg-white p-3 text-sm text-black placeholder-slate-500 shadow-sm"
           placeholder="Search by site, officer, location, log number, severity, status, service, CAD/log number, or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
+        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            {siteOptions.map((site) => (
+              <button
+                key={site}
+                type="button"
+                onClick={() => setSelectedSite(site)}
+                className={`rounded-md border px-3 py-1 text-xs font-semibold ${
+                  selectedSite === site
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {site}
+              </button>
+            ))}
+          </div>
+
+          <label className="flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700">
+            <input
+              type="checkbox"
+              checked={showOpenOnly}
+              onChange={(e) => setShowOpenOnly(e.target.checked)}
+              className="h-4 w-4"
+            />
+            Show open reports only
+          </label>
+        </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] gap-3 border-b bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white md:grid">
@@ -295,7 +395,7 @@ export default function Dashboard() {
                 key={log.id}
                 className={`border-b border-slate-200 ${getSeverityBorder(
                   severity
-                )} ${isOpen ? "bg-red-50" : "bg-slate-50"}`}
+                )} ${getRowBackground(isOpen, severity)}`}
               >
                 <div className="grid gap-3 px-3 py-2.5 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] md:items-center">
                   <div className="flex w-[150px] flex-col items-start gap-1.5">
@@ -521,6 +621,27 @@ export default function Dashboard() {
                       <p className="rounded border border-slate-200 bg-white p-3">
                         {log.action_taken || "No action recorded"}
                       </p>
+                    </div>
+
+                    <div className="mt-4 rounded border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1">
+                        <span>
+                          <strong>Report ID:</strong> {log.log_number || "N/A"}
+                        </span>
+                        <span>
+                          <strong>Status:</strong> {status}
+                        </span>
+                        <span>
+                          <strong>Created:</strong>{" "}
+                          {log.created_at
+                            ? new Date(log.created_at).toLocaleString()
+                            : "N/A"}
+                        </span>
+                        <span>
+                          <strong>Last Dashboard Update:</strong>{" "}
+                          {lastUpdated || "N/A"}
+                        </span>
+                      </div>
                     </div>
 
                     {photos.length > 0 && (
