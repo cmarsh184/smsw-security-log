@@ -64,7 +64,7 @@ export default function Dashboard() {
         return "bg-yellow-100 text-yellow-900";
       case "Low":
       default:
-        return "bg-slate-100 text-slate-700";
+        return "bg-blue-50 text-blue-800 border border-blue-200";
     }
   }
 
@@ -364,8 +364,8 @@ export default function Dashboard() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <div className="mb-4 flex items-center">
-          <label className="flex w-fit cursor-pointer items-center gap-2 rounded border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm">
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
+          <label className="flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700">
             <input
               type="checkbox"
               checked={showOpenOnly}
@@ -374,6 +374,15 @@ export default function Dashboard() {
             />
             Show open reports only
           </label>
+
+          <div className="hidden gap-4 text-xs font-semibold text-slate-600 md:flex">
+            <span>Showing: {filteredLogs.length}</span>
+            <span>Total reports: {logs.length}</span>
+            <span>Open: {openCount}</span>
+            <span>Critical: {criticalOpenCount}</span>
+            <span>Emergency: {emergencyOpenCount}</span>
+            <span>Follow-up: {followUpOpenCount}</span>
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -450,10 +459,10 @@ export default function Dashboard() {
                     <p className="text-sm font-semibold">
                       {log.site_location || "Unknown Site"}
                     </p>
-                    <p className="text-xs text-slate-500">
-                      Site ID: {log.site_id || "N/A"} | Log:{" "}
-                      {log.log_number || "N/A"}
-                    </p>
+                    <div className="text-xs leading-4 text-slate-500">
+                      <p>Site ID: {log.site_id || "N/A"}</p>
+                      <p>Log: {log.log_number || "N/A"}</p>
+                    </div>
                   </div>
 
                   <div>
