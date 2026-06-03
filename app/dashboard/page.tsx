@@ -237,7 +237,10 @@ export default function Dashboard() {
       label: "Critical",
       icon: "!",
       value: criticalOpenCount,
-      className: "border-red-200 bg-red-100 text-red-800",
+      className:
+        criticalOpenCount > 0
+          ? "border-red-300 bg-red-100 text-red-900"
+          : "border-red-200 bg-red-50 text-red-700",
     },
     {
       label: "Emergency",
@@ -258,7 +261,7 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-black">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col items-center gap-3 text-center">
             <img
               src="/logo.png"
@@ -270,33 +273,9 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold tracking-tight">
                 SMSW Operational Dashboard
               </h1>
-              <p className="text-sm text-slate-600">
-                Live incident reports, review status, severity, and operational alerts.
+              <p className="text-sm font-semibold tracking-wide text-slate-600">
+                Live Incident Command Centre
               </p>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-              {stats.map((stat) => (
-                <span
-                  key={stat.label}
-                  className={`inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-xs font-semibold ${stat.className}`}
-                >
-                  <span className="font-bold">{stat.icon}</span>
-                  <span>{stat.label}</span>
-                  <span className="rounded bg-white/80 px-1.5 py-0.5 font-black">
-                    {stat.value}
-                  </span>
-                </span>
-              ))}
-
-              {lastUpdated && (
-                <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                  Updated
-                  <span className="rounded bg-white/80 px-1.5 py-0.5 font-black">
-                    {lastUpdated}
-                  </span>
-                </span>
-              )}
             </div>
           </div>
         </div>
@@ -366,7 +345,7 @@ export default function Dashboard() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
+        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm lg:flex-row lg:items-center lg:justify-between">
           <label className="flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700">
             <input
               type="checkbox"
@@ -377,13 +356,28 @@ export default function Dashboard() {
             Show open reports only
           </label>
 
-          <div className="hidden gap-4 text-xs font-semibold text-slate-600 md:flex">
-            <span>Showing {filteredLogs.length}</span>
-            <span>Total {logs.length}</span>
-            <span>Open {openCount}</span>
-            <span>Critical {criticalOpenCount}</span>
-            <span>Emergency {emergencyOpenCount}</span>
-            <span>Follow-up {followUpOpenCount}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {stats.map((stat) => (
+              <span
+                key={stat.label}
+                className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${stat.className}`}
+              >
+                <span className="font-bold">{stat.icon}</span>
+                <span>{stat.label}</span>
+                <span className="rounded bg-white/80 px-1.5 py-0.5 font-black">
+                  {stat.value}
+                </span>
+              </span>
+            ))}
+
+            {lastUpdated && (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                Updated
+                <span className="rounded bg-white/80 px-1.5 py-0.5 font-black">
+                  {lastUpdated}
+                </span>
+              </span>
+            )}
           </div>
         </div>
 
