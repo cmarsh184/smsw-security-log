@@ -230,7 +230,7 @@ export default function Dashboard() {
         </div>
 
         <input
-          className="mb-4 w-full rounded border border-slate-300 bg-white p-3 text-black placeholder-slate-500 shadow-sm"
+          className="mb-4 w-full rounded border border-slate-300 bg-white p-3 text-sm text-black placeholder-slate-500 shadow-sm"
           placeholder="Search by site, officer, location, log number, severity, status, service, CAD/log number, or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -307,7 +307,7 @@ export default function Dashboard() {
                   </div>
 
                   <div>
-                    <p className="font-semibold">
+                    <p className="text-sm font-semibold">
                       {log.site_location || "Unknown Site"}
                     </p>
                     <p className="text-xs text-slate-600">
@@ -317,20 +317,22 @@ export default function Dashboard() {
                   </div>
 
                   <div>
-                    <p>{log.officer_name || "N/A"}</p>
+                    <p className="text-sm font-medium">
+                      {log.officer_name || "N/A"}
+                    </p>
                     <p className="text-xs text-slate-600">
                       {log.officer_id || ""}
                     </p>
                   </div>
 
-                  <div className="text-sm">
+                  <div className="text-[13px]">
                     <p>{log.incident_date || "N/A"}</p>
                     <p className="text-xs text-slate-600">
                       {log.incident_time || ""}
                     </p>
                   </div>
 
-                  <div className="text-sm">
+                  <div className="text-[13px] leading-5">
                     <p className="line-clamp-2">
                       {log.description || "No description provided"}
                     </p>
@@ -387,7 +389,9 @@ export default function Dashboard() {
                   <div className="border-t border-slate-200 bg-slate-50 p-4">
                     {intelligenceBadges.length > 0 && (
                       <div className="mb-4">
-                        <h3 className="mb-2 font-bold">Operational Alerts</h3>
+                        <h3 className="mb-2 text-sm font-bold">
+                          Operational Alerts
+                        </h3>
                         <div className="flex flex-wrap gap-2">
                           {intelligenceBadges.map((badge) => (
                             <span
@@ -401,7 +405,7 @@ export default function Dashboard() {
                       </div>
                     )}
 
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 text-sm md:grid-cols-2">
                       <div>
                         <h3 className="mb-2 font-bold">Incident Details</h3>
 
@@ -477,14 +481,14 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="mt-4 text-sm">
                       <h3 className="mb-2 font-bold">Description</h3>
                       <p className="rounded border border-slate-200 bg-white p-3">
                         {log.description || "No description provided"}
                       </p>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="mt-4 text-sm">
                       <h3 className="mb-2 font-bold">Action Taken</h3>
                       <p className="rounded border border-slate-200 bg-white p-3">
                         {log.action_taken || "No action recorded"}
@@ -493,7 +497,7 @@ export default function Dashboard() {
 
                     {photos.length > 0 && (
                       <div className="mt-4">
-                        <h3 className="mb-2 font-bold">
+                        <h3 className="mb-2 text-sm font-bold">
                           Photo Evidence ({photos.length})
                         </h3>
 
@@ -521,7 +525,7 @@ export default function Dashboard() {
           })}
 
           {filteredLogs.length === 0 && (
-            <div className="p-6 text-center">No reports found.</div>
+            <div className="p-6 text-center text-sm">No reports found.</div>
           )}
         </div>
       </div>
@@ -535,7 +539,7 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => setSelectedImage(null)}
-              className="absolute right-2 top-2 rounded bg-white px-3 py-1 font-bold text-black"
+              className="absolute right-2 top-2 rounded bg-white px-3 py-1 text-sm font-bold text-black"
             >
               Close
             </button>
