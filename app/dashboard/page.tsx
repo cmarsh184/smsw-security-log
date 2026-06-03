@@ -267,7 +267,7 @@ export default function Dashboard() {
                 key={log.id}
                 className={`border-b border-slate-200 ${getSeverityBorder(
                   severity
-                )} ${isOpen ? "bg-red-50" : "bg-white"}`}
+                )} ${isOpen ? "bg-red-50" : "bg-slate-50"}`}
               >
                 <div className="grid gap-3 p-3 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] md:items-center">
                   <div className="flex w-[150px] flex-col items-start gap-1.5">
