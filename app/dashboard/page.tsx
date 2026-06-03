@@ -230,7 +230,7 @@ export default function Dashboard() {
         />
 
         <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="hidden grid-cols-[150px_110px_1.4fr_1fr_1fr_2fr_160px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
+          <div className="hidden grid-cols-[150px_110px_1.4fr_1fr_1fr_2fr_130px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
             <div>Status</div>
             <div>Severity</div>
             <div>Site</div>
@@ -262,7 +262,7 @@ export default function Dashboard() {
                   isOpen ? "bg-red-50" : "bg-green-50"
                 }`}
               >
-                <div className="grid gap-3 p-3 md:grid-cols-[150px_110px_1.4fr_1fr_1fr_2fr_160px_70px] md:items-center">
+                <div className="grid gap-3 p-3 md:grid-cols-[150px_110px_1.4fr_1fr_1fr_2fr_130px_70px] md:items-center">
                   <div className="flex flex-col items-start gap-2">
                     <span
                       className={`inline-flex min-w-[66px] items-center justify-center rounded px-3 py-1 text-xs font-bold text-white ${
@@ -326,30 +326,30 @@ export default function Dashboard() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex max-w-[110px] flex-col gap-1">
                     <button
                       type="button"
                       onClick={() =>
                         window.open(`/dashboard/report/${log.id}`, "_blank")
                       }
-                      className="rounded bg-black px-3 py-2 text-sm font-semibold text-white"
+                      className="rounded bg-black px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-gray-800"
                     >
-                      View Report
+                      Report
                     </button>
 
                     {isOpen ? (
                       <button
                         type="button"
                         onClick={() => updateStatus(log.id, "Closed")}
-                        className="rounded bg-green-600 px-3 py-2 text-sm font-semibold text-white"
+                        className="rounded bg-green-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
                       >
-                        Mark Closed
+                        Close
                       </button>
                     ) : (
                       <button
                         type="button"
                         onClick={() => updateStatus(log.id, "Open")}
-                        className="rounded bg-red-600 px-3 py-2 text-sm font-semibold text-white"
+                        className="rounded bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
                       >
                         Reopen
                       </button>
@@ -358,7 +358,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       onClick={() => deleteLog(log.id)}
-                      className="rounded bg-red-700 px-3 py-2 text-sm font-semibold text-white"
+                      className="rounded bg-red-700 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-800"
                     >
                       Delete
                     </button>
