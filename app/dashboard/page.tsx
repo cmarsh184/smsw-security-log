@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string>("");
 
   async function fetchLogs() {
     const { data, error } = await supabase
@@ -15,7 +16,10 @@ export default function Dashboard() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error) setLogs(data || []);
+    if (!error) {
+      setLogs(data || []);
+      setLastUpdated(new Date().toLocaleTimeString());
+    }
   }
 
   async function updateStatus(id: string, status: "Open" | "Closed") {
@@ -175,11 +179,44 @@ export default function Dashboard() {
     (log) => log.follow_up_required
   ).length;
 
+  const stats = [
+    {
+      label: "Open",
+      value: openCount,
+      className: "border-red-200 bg-red-50 text-red-700",
+    },
+    {
+      label: "Closed",
+      value: closedCount,
+      className: "border-green-200 bg-green-50 text-green-700",
+    },
+    {
+      label: "High",
+      value: highOpenCount,
+      className: "border-orange-200 bg-orange-50 text-orange-700",
+    },
+    {
+      label: "Critical",
+      value: criticalOpenCount,
+      className: "border-red-200 bg-red-100 text-red-800",
+    },
+    {
+      label: "Emergency",
+      value: emergencyOpenCount,
+      className: "border-purple-200 bg-purple-50 text-purple-800",
+    },
+    {
+      label: "Follow-up",
+      value: followUpOpenCount,
+      className: "border-yellow-200 bg-yellow-50 text-yellow-900",
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-slate-100 p-4 text-black">
       <div className="mx-auto max-w-7xl">
         <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">
               <img
                 src="/logo.png"
@@ -197,34 +234,34 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 text-sm">
-              <span className="rounded bg-red-50 px-3 py-1 font-semibold text-red-700">
-                Open: {openCount}
+            <div className="flex max-w-3xl flex-wrap items-center gap-2">
+              {stats.map((stat) => (
+                <span
+                  key={stat.label}
+                  className={`inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-xs font-semibold ${stat.className}`}
+                >
+                  <span>{stat.label}</span>
+                  <span className="rounded bg-white/70 px-1.5 py-0.5 font-bold">
+                    {stat.value}
+                  </span>
+                </span>
+              ))}
+
+              <span className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                Refresh
+                <span className="rounded bg-white/70 px-1.5 py-0.5 font-bold">
+                  5s
+                </span>
               </span>
 
-              <span className="rounded bg-green-50 px-3 py-1 font-semibold text-green-700">
-                Closed: {closedCount}
-              </span>
-
-              <span className="rounded bg-orange-50 px-3 py-1 font-semibold text-orange-700">
-                High Open: {highOpenCount}
-              </span>
-
-              <span className="rounded bg-red-100 px-3 py-1 font-semibold text-red-800">
-                Critical Open: {criticalOpenCount}
-              </span>
-
-              <span className="rounded bg-purple-50 px-3 py-1 font-semibold text-purple-800">
-                Emergency Open: {emergencyOpenCount}
-              </span>
-
-              <span className="rounded bg-yellow-50 px-3 py-1 font-semibold text-yellow-900">
-                Follow-up Open: {followUpOpenCount}
-              </span>
-
-              <span className="rounded bg-blue-50 px-3 py-1 font-semibold text-blue-700">
-                Refresh: 5s
-              </span>
+              {lastUpdated && (
+                <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                  Updated
+                  <span className="rounded bg-white/70 px-1.5 py-0.5 font-bold">
+                    {lastUpdated}
+                  </span>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -332,7 +369,7 @@ export default function Dashboard() {
                     </p>
                   </div>
 
-                  <div className="text-[13px] leading-5">
+                  <div className="text-[12px] leading-4 text-slate-700">
                     <p className="line-clamp-2">
                       {log.description || "No description provided"}
                     </p>
