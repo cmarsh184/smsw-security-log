@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../../lib/supabase";
 import { useParams } from "next/navigation";
 
 export default function ReportPage() {
@@ -38,8 +38,6 @@ export default function ReportPage() {
   return (
     <main className="bg-gray-200 p-4 print:bg-white">
       <div className="mx-auto max-w-3xl bg-white p-6 shadow print:shadow-none">
-
-        {/* HEADER */}
         <div className="mb-6 flex items-center gap-4 border-b pb-4">
           <img
             src="/logo.png"
@@ -55,53 +53,97 @@ export default function ReportPage() {
           </div>
         </div>
 
-        {/* BASIC INFO */}
         <div className="mb-4 grid grid-cols-2 gap-4 text-sm">
-          <p><strong>Site:</strong> {log.site_location}</p>
-          <p><strong>Site ID:</strong> {log.site_id}</p>
-          <p><strong>Log Number:</strong> {log.log_number}</p>
-          <p><strong>Status:</strong> {log.status || "Open"}</p>
+          <p>
+            <strong>Site:</strong> {log.site_location || "N/A"}
+          </p>
+          <p>
+            <strong>Site ID:</strong> {log.site_id || "N/A"}
+          </p>
+          <p>
+            <strong>Log Number:</strong> {log.log_number || "N/A"}
+          </p>
+          <p>
+            <strong>Status:</strong> {log.status || "Open"}
+          </p>
+          <p>
+            <strong>Severity:</strong> {log.severity || "Low"}
+          </p>
         </div>
 
-        {/* OFFICER */}
         <div className="mb-4">
           <h2 className="mb-1 border-b font-bold">Officer Details</h2>
-          <p><strong>Name:</strong> {log.officer_name}</p>
-          <p><strong>ID / Call Sign:</strong> {log.officer_id}</p>
-          <p><strong>Role:</strong> {log.duty_role}</p>
+          <p>
+            <strong>Name:</strong> {log.officer_name || "N/A"}
+          </p>
+          <p>
+            <strong>ID / Call Sign:</strong> {log.officer_id || "N/A"}
+          </p>
+          <p>
+            <strong>Role:</strong> {log.duty_role || "N/A"}
+          </p>
         </div>
 
-        {/* INCIDENT */}
         <div className="mb-4">
           <h2 className="mb-1 border-b font-bold">Incident Details</h2>
-          <p><strong>Date:</strong> {log.incident_date}</p>
-          <p><strong>Time:</strong> {log.incident_time}</p>
-          <p><strong>Exact Location:</strong> {log.exact_location}</p>
-          <p><strong>Persons Involved:</strong> {log.persons_involved}</p>
+          <p>
+            <strong>Date:</strong> {log.incident_date || "N/A"}
+          </p>
+          <p>
+            <strong>Time:</strong> {log.incident_time || "N/A"}
+          </p>
+          <p>
+            <strong>Exact Location:</strong> {log.exact_location || "N/A"}
+          </p>
+          <p>
+            <strong>Persons Involved:</strong> {log.persons_involved || "N/A"}
+          </p>
         </div>
 
-        {/* DESCRIPTION */}
         <div className="mb-4">
           <h2 className="mb-1 border-b font-bold">Description</h2>
-          <p>{log.description}</p>
+          <p>{log.description || "No description provided"}</p>
         </div>
 
-        {/* ACTION */}
         <div className="mb-4">
           <h2 className="mb-1 border-b font-bold">Action Taken</h2>
-          <p>{log.action_taken}</p>
+          <p>{log.action_taken || "No action recorded"}</p>
         </div>
 
-        {/* FLAGS */}
         <div className="mb-4 text-sm">
           <h2 className="mb-1 border-b font-bold">Notifications & Actions</h2>
-          <p><strong>Emergency Services:</strong> {log.emergency_services ? "Yes" : "No"}</p>
-          <p><strong>Supervisor Notified:</strong> {log.supervisor_notified ? "Yes" : "No"}</p>
-          <p><strong>Client Notified:</strong> {log.client_notified ? "Yes" : "No"}</p>
-          <p><strong>Follow-up Required:</strong> {log.follow_up_required ? "Yes" : "No"}</p>
+
+          <p>
+            <strong>Emergency Services:</strong>{" "}
+            {log.emergency_services ? "Yes" : "No"}
+          </p>
+
+          {log.emergency_services && (
+            <>
+              <p>
+                <strong>Emergency Service:</strong>{" "}
+                {log.emergency_service_type || "N/A"}
+              </p>
+              <p>
+                <strong>Emergency Service Log / CAD Number:</strong>{" "}
+                {log.emergency_service_log_number || "N/A"}
+              </p>
+            </>
+          )}
+
+          <p>
+            <strong>Supervisor Notified:</strong>{" "}
+            {log.supervisor_notified ? "Yes" : "No"}
+          </p>
+          <p>
+            <strong>Client Notified:</strong> {log.client_notified ? "Yes" : "No"}
+          </p>
+          <p>
+            <strong>Follow-up Required:</strong>{" "}
+            {log.follow_up_required ? "Yes" : "No"}
+          </p>
         </div>
 
-        {/* PHOTOS */}
         {photos.length > 0 && (
           <div className="mb-4">
             <h2 className="mb-2 border-b font-bold">Photo Evidence</h2>
@@ -118,12 +160,10 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* FOOTER */}
         <div className="mt-6 border-t pt-4 text-sm text-gray-500">
           <p>Report generated: {new Date().toLocaleString()}</p>
         </div>
 
-        {/* PRINT BUTTON */}
         <div className="mt-6 text-center print:hidden">
           <button
             onClick={() => window.print()}
