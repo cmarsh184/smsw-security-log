@@ -233,7 +233,7 @@ export default function Dashboard() {
       const bTime = new Date(b.created_at || 0).getTime();
       return bTime - aTime;
     })
-    .slice(0, 5);
+    .slice(0, 10);
 
   const filteredLogs = logs.filter((log) => {
     const searchText = search.toLowerCase();
