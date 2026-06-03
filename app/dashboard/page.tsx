@@ -28,6 +28,23 @@ export default function Dashboard() {
     else alert("Could not update status: " + error.message);
   }
 
+  async function deleteLog(id: string) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this report? This cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase.from("event_logs").delete().eq("id", id);
+
+    if (!error) {
+      if (expandedId === id) setExpandedId(null);
+      fetchLogs();
+    } else {
+      alert("Could not delete report: " + error.message);
+    }
+  }
+
   function getSeverityClasses(severity: string) {
     switch (severity) {
       case "Critical":
@@ -130,7 +147,7 @@ export default function Dashboard() {
         />
 
         <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="hidden grid-cols-[120px_110px_1.4fr_1fr_1fr_2fr_140px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
+          <div className="hidden grid-cols-[120px_110px_1.4fr_1fr_1fr_2fr_160px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
             <div>Status</div>
             <div>Severity</div>
             <div>Site</div>
@@ -167,7 +184,7 @@ export default function Dashboard() {
                   isOpen ? "bg-red-50" : "bg-green-50"
                 }`}
               >
-                <div className="grid gap-3 p-3 md:grid-cols-[120px_110px_1.4fr_1fr_1fr_2fr_140px_70px] md:items-center">
+                <div className="grid gap-3 p-3 md:grid-cols-[120px_110px_1.4fr_1fr_1fr_2fr_160px_70px] md:items-center">
                   <div>
                     <span
                       className={`inline-block rounded px-3 py-1 text-xs font-bold text-white ${
@@ -252,6 +269,14 @@ export default function Dashboard() {
                         Reopen
                       </button>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => deleteLog(log.id)}
+                      className="rounded bg-red-700 px-3 py-2 text-sm font-semibold text-white"
+                    >
+                      Delete
+                    </button>
                   </div>
 
                   <button
