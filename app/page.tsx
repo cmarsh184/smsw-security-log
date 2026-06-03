@@ -22,6 +22,7 @@ const emptyForm = {
   officer_id: "",
   duty_role: "",
   log_number: "",
+  severity: "Low",
   incident_date: "",
   incident_time: "",
   exact_location: "",
@@ -29,6 +30,8 @@ const emptyForm = {
   description: "",
   action_taken: "",
   emergency_services: false,
+  emergency_service_type: "",
+  emergency_service_log_number: "",
   supervisor_notified: false,
   client_notified: false,
   follow_up_required: false,
@@ -50,14 +53,12 @@ export default function Home() {
     "w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500";
 
   async function compressPhoto(file: File) {
-    const options = {
+    return await imageCompression(file, {
       maxSizeMB: 0.4,
       maxWidthOrHeight: 1600,
       useWebWorker: true,
       initialQuality: 0.7,
-    };
-
-    return await imageCompression(file, options);
+    });
   }
 
   async function uploadPhotos() {
@@ -212,6 +213,20 @@ export default function Home() {
             readOnly
           />
 
+          <p className="mt-4 font-semibold text-black">Severity Level</p>
+
+          <select
+            className={inputStyle}
+            value={form.severity}
+            onChange={(e) => setForm({ ...form, severity: e.target.value })}
+            required
+          >
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+
           <p className="mt-4 font-semibold text-black">Incident Details</p>
 
           <input
@@ -298,11 +313,53 @@ export default function Home() {
                   setForm({
                     ...form,
                     emergency_services: e.target.checked,
+                    emergency_service_type: e.target.checked
+                      ? form.emergency_service_type
+                      : "",
+                    emergency_service_log_number: e.target.checked
+                      ? form.emergency_service_log_number
+                      : "",
                   })
                 }
               />
               <span>Emergency Services Involved</span>
             </label>
+
+            {form.emergency_services && (
+              <div className="ml-7 space-y-3 rounded border border-gray-300 bg-gray-50 p-3">
+                <select
+                  className={inputStyle}
+                  value={form.emergency_service_type}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      emergency_service_type: e.target.value,
+                    })
+                  }
+                  required
+                >
+                  <option value="">Which Service?</option>
+                  <option value="Police">Police</option>
+                  <option value="Ambulance">Ambulance</option>
+                  <option value="Fire Service">Fire Service</option>
+                  <option value="Coastguard">Coastguard</option>
+                  <option value="Local Authority">Local Authority</option>
+                  <option value="Other">Other</option>
+                </select>
+
+                <input
+                  className={inputStyle}
+                  placeholder="Emergency Service Log / CAD Number"
+                  value={form.emergency_service_log_number}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      emergency_service_log_number: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            )}
 
             <label className="flex items-center gap-3">
               <input
