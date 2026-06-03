@@ -216,25 +216,23 @@ export default function Dashboard() {
     <main className="min-h-screen bg-slate-100 p-4 text-black">
       <div className="mx-auto max-w-7xl">
         <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-4">
-              <img
-                src="/logo.png"
-                alt="SMSW Logo"
-                className="h-12 w-auto object-contain"
-              />
+          <div className="flex flex-col items-center gap-3 text-center">
+            <img
+              src="/logo.png"
+              alt="SMSW Logo"
+              className="h-14 w-auto object-contain"
+            />
 
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">
-                  Control Room Dashboard
-                </h1>
-                <p className="text-sm text-slate-600">
-                  Live incident reports, review status, severity, and operational alerts.
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">
+                SMSW Operational Dashboard
+              </h1>
+              <p className="text-sm text-slate-600">
+                Live incident reports, review status, severity, and operational alerts.
+              </p>
             </div>
 
-            <div className="flex max-w-3xl flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
               {stats.map((stat) => (
                 <span
                   key={stat.label}
@@ -246,13 +244,6 @@ export default function Dashboard() {
                   </span>
                 </span>
               ))}
-
-              <span className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                Refresh
-                <span className="rounded bg-white/70 px-1.5 py-0.5 font-bold">
-                  5s
-                </span>
-              </span>
 
               {lastUpdated && (
                 <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
