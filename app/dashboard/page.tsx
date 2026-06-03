@@ -235,7 +235,7 @@ export default function Dashboard() {
         />
 
         <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_70px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
+          <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] gap-3 border-b bg-slate-900 p-3 text-sm font-semibold text-white md:grid">
             <div>Status</div>
             <div>Severity</div>
             <div>Site</div>
@@ -267,7 +267,7 @@ export default function Dashboard() {
                   isOpen ? "bg-red-50" : "bg-green-50"
                 }`}
               >
-                <div className="grid gap-3 p-4 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_70px] md:items-center">
+                <div className="grid gap-3 p-4 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] md:items-center">
                   <div className="flex w-[150px] flex-col items-start gap-1.5">
                     <span
                       className={`inline-flex h-7 w-[150px] items-center rounded px-2 text-xs font-bold text-white ${
@@ -375,7 +375,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : log.id)}
-                    className="rounded border bg-white px-3 py-2 text-xl font-bold hover:bg-gray-100"
+                    className="flex h-9 w-9 items-center justify-center rounded border bg-white text-sm font-bold hover:bg-gray-100"
                   >
                     {isExpanded ? "▲" : "▼"}
                   </button>
