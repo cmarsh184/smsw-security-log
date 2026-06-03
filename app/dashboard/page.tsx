@@ -237,7 +237,7 @@ export default function Dashboard() {
         />
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] gap-3 border-b bg-slate-950 p-3 text-sm font-semibold text-white md:grid">
+          <div className="hidden grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] gap-3 border-b bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white md:grid">
             <div>Status</div>
             <div>Severity</div>
             <div>Site</div>
@@ -269,7 +269,7 @@ export default function Dashboard() {
                   severity
                 )} ${isOpen ? "bg-red-50" : "bg-slate-50"}`}
               >
-                <div className="grid gap-3 p-3 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] md:items-center">
+                <div className="grid gap-3 px-3 py-2.5 md:grid-cols-[180px_95px_1.4fr_1fr_1fr_2fr_120px_45px] md:items-center">
                   <div className="flex w-[150px] flex-col items-start gap-1.5">
                     <span
                       className={`inline-flex h-7 w-[150px] items-center rounded px-2 text-xs font-bold text-white ${
@@ -310,7 +310,7 @@ export default function Dashboard() {
                     <p className="text-sm font-semibold">
                       {log.site_location || "Unknown Site"}
                     </p>
-                    <p className="text-xs text-slate-600">
+                    <p className="text-xs text-slate-500">
                       Site ID: {log.site_id || "N/A"} | Log:{" "}
                       {log.log_number || "N/A"}
                     </p>
@@ -320,14 +320,14 @@ export default function Dashboard() {
                     <p className="text-sm font-medium">
                       {log.officer_name || "N/A"}
                     </p>
-                    <p className="text-xs text-slate-600">
+                    <p className="text-xs text-slate-500">
                       {log.officer_id || ""}
                     </p>
                   </div>
 
                   <div className="text-[13px]">
                     <p>{log.incident_date || "N/A"}</p>
-                    <p className="text-xs text-slate-600">
+                    <p className="text-xs text-slate-500">
                       {log.incident_time || ""}
                     </p>
                   </div>
@@ -370,7 +370,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       onClick={() => deleteLog(log.id)}
-                      className="rounded bg-red-700 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-800"
+                      className="rounded bg-red-800 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-900"
                     >
                       Delete
                     </button>
