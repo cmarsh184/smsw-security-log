@@ -170,7 +170,7 @@ export default function Dashboard() {
           .map((log) => log.site_location)
           .filter((site) => typeof site === "string" && site.trim().length > 0)
       )
-    );
+    ).sort();
 
     return ["All Sites", ...uniqueSites];
   }, [logs]);
@@ -192,6 +192,7 @@ export default function Dashboard() {
 
   const filteredLogs = logs.filter((log) => {
     const searchText = search.toLowerCase();
+
     const matchesSearch =
       log.site_location?.toLowerCase().includes(searchText) ||
       log.officer_name?.toLowerCase().includes(searchText) ||
@@ -335,33 +336,36 @@ export default function Dashboard() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            {siteOptions.map((site) => (
-              <button
-                key={site}
-                type="button"
-                onClick={() => setSelectedSite(site)}
-                className={`rounded-md border px-3 py-1 text-xs font-semibold ${
-                  selectedSite === site
-                    ? "border-slate-900 bg-slate-900 text-white"
-                    : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-                }`}
-              >
-                {site}
-              </button>
-            ))}
-          </div>
+        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-1 md:w-80">
+              <label className="text-xs font-semibold text-slate-600">
+                Site filter
+              </label>
 
-          <label className="flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700">
-            <input
-              type="checkbox"
-              checked={showOpenOnly}
-              onChange={(e) => setShowOpenOnly(e.target.checked)}
-              className="h-4 w-4"
-            />
-            Show open reports only
-          </label>
+              <select
+                value={selectedSite}
+                onChange={(e) => setSelectedSite(e.target.value)}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm"
+              >
+                {siteOptions.map((site) => (
+                  <option key={site} value={site}>
+                    {site}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <label className="flex w-fit cursor-pointer items-center gap-2 rounded border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={showOpenOnly}
+                onChange={(e) => setShowOpenOnly(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Show open reports only
+            </label>
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -564,7 +568,9 @@ export default function Dashboard() {
 
                         <p>
                           <strong>Created:</strong>{" "}
-                          {new Date(log.created_at).toLocaleString()}
+                          {log.created_at
+                            ? new Date(log.created_at).toLocaleString()
+                            : "N/A"}
                         </p>
                       </div>
 
