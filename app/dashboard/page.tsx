@@ -51,6 +51,19 @@ export default function Dashboard() {
     }
   }
 
+  function openReportFromFeed(id: string) {
+    setReportsCollapsed(false);
+    setExpandedId(id);
+
+    setTimeout(() => {
+      const reportElement = document.getElementById(`report-${id}`);
+      reportElement?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 150);
+  }
+
   function isLogOpen(log: any) {
     return (log.status || "Open") === "Open";
   }
@@ -175,8 +188,10 @@ export default function Dashboard() {
   }
 
   function getActivityType(log: any) {
-    if (isLogOpen(log) && log.severity === "Critical") return "Critical incident logged";
-    if (isLogOpen(log) && log.emergency_services) return "Emergency services involved";
+    if (isLogOpen(log) && log.severity === "Critical")
+      return "Critical incident logged";
+    if (isLogOpen(log) && log.emergency_services)
+      return "Emergency services involved";
     if (isLogOpen(log) && log.follow_up_required) return "Follow-up required";
     if (isLogOpen(log)) return "Open report logged";
     return "Report closed";
@@ -213,9 +228,15 @@ export default function Dashboard() {
   const openCount = openLogs.length;
   const closedCount = logs.filter((log) => log.status === "Closed").length;
   const highOpenCount = openLogs.filter((log) => log.severity === "High").length;
-  const criticalOpenCount = openLogs.filter((log) => log.severity === "Critical").length;
-  const emergencyOpenCount = openLogs.filter((log) => log.emergency_services).length;
-  const followUpOpenCount = openLogs.filter((log) => log.follow_up_required).length;
+  const criticalOpenCount = openLogs.filter(
+    (log) => log.severity === "Critical"
+  ).length;
+  const emergencyOpenCount = openLogs.filter(
+    (log) => log.emergency_services
+  ).length;
+  const followUpOpenCount = openLogs.filter(
+    (log) => log.follow_up_required
+  ).length;
 
   const priorityLogs = openLogs
     .filter(
@@ -352,7 +373,7 @@ export default function Dashboard() {
                 <button
                   key={log.id}
                   type="button"
-                  onClick={() => setExpandedId(log.id)}
+                  onClick={() => openReportFromFeed(log.id)}
                   className="flex flex-col gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-left hover:bg-slate-100 md:flex-row md:items-center md:justify-between"
                 >
                   <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center md:gap-3">
@@ -442,7 +463,7 @@ export default function Dashboard() {
               <button
                 key={log.id}
                 type="button"
-                onClick={() => setExpandedId(log.id)}
+                onClick={() => openReportFromFeed(log.id)}
                 className="flex w-full flex-col gap-1 py-2 text-left hover:bg-slate-50 md:flex-row md:items-center md:gap-3"
               >
                 <span className="w-14 shrink-0 text-xs font-bold text-slate-500">
@@ -519,8 +540,9 @@ export default function Dashboard() {
 
                 return (
                   <div
+                    id={`report-${log.id}`}
                     key={log.id}
-                    className={`border-b border-slate-200 ${getSeverityBorder(
+                    className={`scroll-mt-4 border-b border-slate-200 ${getSeverityBorder(
                       severity
                     )} ${getRowBackground(isOpen, severity)}`}
                   >
