@@ -25,22 +25,55 @@ export default function Dashboard() {
     }
   }
 
+  async function writeAuditLog(log: any, action: string, details?: string) {
+    try {
+      await supabase.from("audit_logs").insert({
+        event_log_id: log.id,
+        log_number: log.log_number,
+        site_location: log.site_location,
+        action,
+        details,
+        performed_by: "Control Room",
+      });
+    } catch (error) {
+      console.error("Audit log error:", error);
+    }
+  }
+
   async function updateStatus(id: string, status: "Open" | "Closed") {
+    const log = logs.find((item) => item.id === id);
+
     const { error } = await supabase
       .from("event_logs")
       .update({ status })
       .eq("id", id);
 
-    if (!error) fetchLogs();
-    else alert("Could not update status: " + error.message);
+    if (!error) {
+      if (log) {
+        await writeAuditLog(
+          log,
+          status === "Closed" ? "Report Closed" : "Report Reopened"
+        );
+      }
+
+      fetchLogs();
+    } else {
+      alert("Could not update status: " + error.message);
+    }
   }
 
   async function deleteLog(id: string) {
+    const log = logs.find((item) => item.id === id);
+
     const confirmed = window.confirm(
       "Are you sure you want to delete this report? This cannot be undone."
     );
 
     if (!confirmed) return;
+
+    if (log) {
+      await writeAuditLog(log, "Report Deleted", "Report removed from dashboard");
+    }
 
     const { error } = await supabase.from("event_logs").delete().eq("id", id);
 
@@ -95,9 +128,7 @@ export default function Dashboard() {
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
 
-    if (hours < 24) {
-      return `${hours}h ${mins}m`;
-    }
+    if (hours < 24) return `${hours}h ${mins}m`;
 
     const days = Math.floor(hours / 24);
     const remainingHours = hours % 24;
@@ -266,6 +297,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchLogs();
+
     const fetchInterval = setInterval(fetchLogs, 5000);
     const clockInterval = setInterval(() => setNow(new Date()), 30000);
 
