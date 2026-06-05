@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 
 export default function Dashboard() {
   const [logs, setLogs] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -25,6 +26,17 @@ export default function Dashboard() {
     }
   }
 
+  async function fetchAuditLogs() {
+    const { data, error } = await supabase
+      .from("audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error) {
+      setAuditLogs(data || []);
+    }
+  }
+
   async function writeAuditLog(log: any, action: string, details?: string) {
     try {
       await supabase.from("audit_logs").insert({
@@ -35,6 +47,8 @@ export default function Dashboard() {
         details,
         performed_by: "Control Room",
       });
+
+      fetchAuditLogs();
     } catch (error) {
       console.error("Audit log error:", error);
     }
@@ -111,6 +125,14 @@ export default function Dashboard() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  function formatDateTime(value: string | null | undefined) {
+    if (!value) return "N/A";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "N/A";
+
+    return date.toLocaleString();
   }
 
   function getIncidentAge(value: string | null | undefined) {
@@ -295,10 +317,23 @@ export default function Dashboard() {
     return "border-green-300 bg-green-50 text-green-800";
   }
 
+  function getAuditForLog(log: any) {
+    return auditLogs.filter(
+      (audit) =>
+        audit.event_log_id === log.id ||
+        (audit.log_number && audit.log_number === log.log_number)
+    );
+  }
+
   useEffect(() => {
     fetchLogs();
+    fetchAuditLogs();
 
-    const fetchInterval = setInterval(fetchLogs, 5000);
+    const fetchInterval = setInterval(() => {
+      fetchLogs();
+      fetchAuditLogs();
+    }, 5000);
+
     const clockInterval = setInterval(() => setNow(new Date()), 30000);
 
     return () => {
@@ -660,6 +695,7 @@ export default function Dashboard() {
                 const isOpen = status === "Open";
                 const isExpanded = expandedId === log.id;
                 const intelligenceBadges = getIntelligenceBadges(log, severity);
+                const reportAuditLogs = getAuditForLog(log);
 
                 const photos: string[] =
                   Array.isArray(log.photo_urls) && log.photo_urls.length > 0
@@ -913,6 +949,46 @@ export default function Dashboard() {
                           <p className="rounded border border-slate-200 bg-white p-3">
                             {log.action_taken || "No action recorded"}
                           </p>
+                        </div>
+
+                        <div className="mt-4 rounded border border-slate-200 bg-white p-3 text-sm">
+                          <div className="mb-2 flex items-center justify-between">
+                            <h3 className="font-bold">Audit History</h3>
+                            <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                              {reportAuditLogs.length} entries
+                            </span>
+                          </div>
+
+                          {reportAuditLogs.length > 0 ? (
+                            <div className="divide-y divide-slate-200">
+                              {reportAuditLogs.map((audit) => (
+                                <div
+                                  key={audit.id}
+                                  className="grid gap-2 py-2 text-xs md:grid-cols-[145px_160px_1fr_120px]"
+                                >
+                                  <span className="font-semibold text-slate-500">
+                                    {formatDateTime(audit.created_at)}
+                                  </span>
+
+                                  <span className="font-bold text-slate-900">
+                                    {audit.action || "Audit Action"}
+                                  </span>
+
+                                  <span className="text-slate-600">
+                                    {audit.details || "No additional details"}
+                                  </span>
+
+                                  <span className="font-semibold text-slate-500">
+                                    {audit.performed_by || "Control Room"}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="rounded border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                              No audit history recorded for this report yet.
+                            </p>
+                          )}
                         </div>
 
                         <div className="mt-4 rounded border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
