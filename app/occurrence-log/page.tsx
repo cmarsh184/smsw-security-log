@@ -4,10 +4,15 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 export default function OccurrenceLogPage() {
+  const today = new Date().toISOString().split("T")[0];
+  const currentTime = new Date().toTimeString().slice(0, 5);
+
   const [officerName, setOfficerName] = useState("");
   const [officerId, setOfficerId] = useState("");
   const [siteId, setSiteId] = useState("");
   const [siteLocation, setSiteLocation] = useState("");
+  const [occurrenceDate, setOccurrenceDate] = useState(today);
+  const [occurrenceTime, setOccurrenceTime] = useState(currentTime);
   const [occurrenceType, setOccurrenceType] = useState("Patrol Completed");
   const [priority, setPriority] = useState("Routine");
   const [exactLocation, setExactLocation] = useState("");
@@ -58,6 +63,8 @@ export default function OccurrenceLogPage() {
         officer_id: officerId,
         site_id: siteId,
         site_location: siteLocation,
+        occurrence_date: occurrenceDate,
+        occurrence_time: occurrenceTime,
         occurrence_type: occurrenceType,
         priority,
         exact_location: exactLocation,
@@ -75,6 +82,8 @@ export default function OccurrenceLogPage() {
       setOfficerId("");
       setSiteId("");
       setSiteLocation("");
+      setOccurrenceDate(today);
+      setOccurrenceTime(new Date().toTimeString().slice(0, 5));
       setOccurrenceType("Patrol Completed");
       setPriority("Routine");
       setExactLocation("");
@@ -172,6 +181,32 @@ export default function OccurrenceLogPage() {
                 onChange={(e) => setSiteLocation(e.target.value)}
                 className="w-full rounded border border-slate-300 p-2 text-sm"
                 placeholder="Site or location"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold">
+                Occurrence Date
+              </label>
+              <input
+                required
+                type="date"
+                value={occurrenceDate}
+                onChange={(e) => setOccurrenceDate(e.target.value)}
+                className="w-full rounded border border-slate-300 p-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold">
+                Occurrence Time
+              </label>
+              <input
+                required
+                type="time"
+                value={occurrenceTime}
+                onChange={(e) => setOccurrenceTime(e.target.value)}
+                className="w-full rounded border border-slate-300 p-2 text-sm"
               />
             </div>
 
