@@ -256,24 +256,37 @@ export default function Dashboard() {
     })
     .slice(0, 10);
 
-  const filteredLogs = logs.filter((log) => {
-    const searchText = search.toLowerCase();
+  const filteredLogs = logs
+    .filter((log) => {
+      const searchText = search.toLowerCase();
 
-    const matchesSearch =
-      log.site_location?.toLowerCase().includes(searchText) ||
-      log.officer_name?.toLowerCase().includes(searchText) ||
-      log.description?.toLowerCase().includes(searchText) ||
-      log.exact_location?.toLowerCase().includes(searchText) ||
-      log.log_number?.toLowerCase().includes(searchText) ||
-      log.status?.toLowerCase().includes(searchText) ||
-      log.severity?.toLowerCase().includes(searchText) ||
-      log.emergency_service_type?.toLowerCase().includes(searchText) ||
-      log.emergency_service_log_number?.toLowerCase().includes(searchText);
+      const matchesSearch =
+        log.site_location?.toLowerCase().includes(searchText) ||
+        log.officer_name?.toLowerCase().includes(searchText) ||
+        log.description?.toLowerCase().includes(searchText) ||
+        log.exact_location?.toLowerCase().includes(searchText) ||
+        log.log_number?.toLowerCase().includes(searchText) ||
+        log.status?.toLowerCase().includes(searchText) ||
+        log.severity?.toLowerCase().includes(searchText) ||
+        log.emergency_service_type?.toLowerCase().includes(searchText) ||
+        log.emergency_service_log_number?.toLowerCase().includes(searchText);
 
-    const matchesOpenOnly = !showOpenOnly || isLogOpen(log);
+      const matchesOpenOnly = !showOpenOnly || isLogOpen(log);
 
-    return matchesSearch && matchesOpenOnly;
-  });
+      return matchesSearch && matchesOpenOnly;
+    })
+    .sort((a, b) => {
+      const aOpen = isLogOpen(a);
+      const bOpen = isLogOpen(b);
+
+      if (aOpen && !bOpen) return -1;
+      if (!aOpen && bOpen) return 1;
+
+      const aDate = new Date(a.created_at || 0).getTime();
+      const bDate = new Date(b.created_at || 0).getTime();
+
+      return bDate - aDate;
+    });
 
   const stats = [
     {
