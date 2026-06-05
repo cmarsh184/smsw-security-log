@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 
 export default function Dashboard() {
   const [logs, setLogs] = useState<any[]>([]);
+  const [occurrenceLogs, setOccurrenceLogs] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -23,6 +24,17 @@ export default function Dashboard() {
     if (!error) {
       setLogs(data || []);
       setLastUpdated(new Date().toLocaleTimeString());
+    }
+  }
+
+  async function fetchOccurrenceLogs() {
+    const { data, error } = await supabase
+      .from("occurrence_logs")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error) {
+      setOccurrenceLogs(data || []);
     }
   }
 
@@ -327,10 +339,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchLogs();
+    fetchOccurrenceLogs();
     fetchAuditLogs();
 
     const fetchInterval = setInterval(() => {
       fetchLogs();
+      fetchOccurrenceLogs();
       fetchAuditLogs();
     }, 5000);
 
@@ -356,6 +370,7 @@ export default function Dashboard() {
   const followUpOpenCount = openLogs.filter(
     (log) => log.follow_up_required
   ).length;
+  const occurrenceCount = occurrenceLogs.length;
 
   const priorityLogs = openLogs
     .filter(
@@ -464,6 +479,12 @@ export default function Dashboard() {
       icon: "!",
       value: followUpOpenCount,
       className: "border-yellow-200 bg-yellow-50 text-yellow-900",
+    },
+    {
+      label: "Occurrences",
+      icon: "◉",
+      value: occurrenceCount,
+      className: "border-sky-200 bg-sky-50 text-sky-800",
     },
   ];
 
