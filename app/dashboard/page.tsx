@@ -10,9 +10,13 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedOccurrenceId, setExpandedOccurrenceId] = useState<string | null>(
+    null
+  );
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [showOpenOnly, setShowOpenOnly] = useState(false);
   const [reportsCollapsed, setReportsCollapsed] = useState(false);
+  const [occurrencesCollapsed, setOccurrencesCollapsed] = useState(false);
   const [now, setNow] = useState<Date>(new Date());
 
   async function fetchLogs() {
@@ -167,6 +171,18 @@ export default function Dashboard() {
     }
 
     if (log.priority === "Information") {
+      return "border-blue-300 bg-blue-100 text-blue-900";
+    }
+
+    return "border-slate-300 bg-slate-100 text-slate-800";
+  }
+
+  function getOccurrencePriorityClasses(priority: string) {
+    if (priority === "Action Required") {
+      return "border-yellow-300 bg-yellow-100 text-yellow-900";
+    }
+
+    if (priority === "Information") {
       return "border-blue-300 bg-blue-100 text-blue-900";
     }
 
@@ -479,6 +495,28 @@ export default function Dashboard() {
       return bDate - aDate;
     });
 
+  const filteredOccurrenceLogs = occurrenceLogs
+    .filter((log) => {
+      const searchText = search.toLowerCase();
+
+      return (
+        log.site_location?.toLowerCase().includes(searchText) ||
+        log.officer_name?.toLowerCase().includes(searchText) ||
+        log.officer_id?.toLowerCase().includes(searchText) ||
+        log.site_id?.toLowerCase().includes(searchText) ||
+        log.occurrence_type?.toLowerCase().includes(searchText) ||
+        log.priority?.toLowerCase().includes(searchText) ||
+        log.exact_location?.toLowerCase().includes(searchText) ||
+        log.details?.toLowerCase().includes(searchText)
+      );
+    })
+    .sort((a, b) => {
+      const aDate = new Date(a.created_at || 0).getTime();
+      const bDate = new Date(b.created_at || 0).getTime();
+
+      return bDate - aDate;
+    });
+
   const stats = [
     {
       label: "Open",
@@ -620,7 +658,7 @@ export default function Dashboard() {
 
         <input
           className="mb-3 w-full rounded border border-slate-300 bg-white p-3 text-sm text-black placeholder-slate-500 shadow-sm"
-          placeholder="Search by site, officer, location, log number, severity, status, service, CAD/log number, or description..."
+          placeholder="Search by site, officer, location, log number, severity, status, service, CAD/log number, occurrence type, priority, or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -721,8 +759,23 @@ export default function Dashboard() {
               const occurrence = item.data;
 
               return (
-                <div
+                <button
                   key={`occurrence-${occurrence.id}`}
+                  type="button"
+                  onClick={() => {
+                    setOccurrencesCollapsed(false);
+                    setExpandedOccurrenceId(occurrence.id);
+
+                    setTimeout(() => {
+                      const occurrenceElement = document.getElementById(
+                        `occurrence-${occurrence.id}`
+                      );
+                      occurrenceElement?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    }, 150);
+                  }}
                   className="flex w-full flex-col gap-1 py-2 text-left hover:bg-slate-50 md:flex-row md:items-center md:gap-3"
                 >
                   <span className="w-14 shrink-0 text-xs font-bold text-slate-500">
@@ -748,7 +801,7 @@ export default function Dashboard() {
                   <span className="shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
                     Occurrence
                   </span>
-                </div>
+                </button>
               );
             })}
 
@@ -1147,6 +1200,228 @@ export default function Dashboard() {
 
               {filteredLogs.length === 0 && (
                 <div className="p-6 text-center text-sm">No reports found.</div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b bg-slate-950 px-4 py-3 text-white">
+            <div>
+              <h2 className="text-sm font-bold">Occurrence Logs</h2>
+              <p className="text-xs text-slate-300">
+                Patrols, site visits, vehicle checks, welfare visits, lock/unlocks and routine operational activity
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setOccurrencesCollapsed(!occurrencesCollapsed)}
+              className="rounded bg-white/10 px-3 py-1 text-xs font-semibold hover:bg-white/20"
+            >
+              {occurrencesCollapsed ? "Show" : "Hide"}
+            </button>
+          </div>
+
+          {!occurrencesCollapsed && (
+            <>
+              <div className="hidden grid-cols-[90px_180px_1.2fr_0.9fr_130px_45px] gap-3 border-b bg-slate-100 px-4 py-2 text-xs font-bold uppercase text-slate-700 md:grid">
+                <div>Time</div>
+                <div>Type</div>
+                <div>Site</div>
+                <div>Officer</div>
+                <div>Priority</div>
+                <div>Open</div>
+              </div>
+
+              {filteredOccurrenceLogs.map((log) => {
+                const isExpanded = expandedOccurrenceId === log.id;
+                const photos: string[] =
+                  Array.isArray(log.photo_urls) && log.photo_urls.length > 0
+                    ? log.photo_urls
+                    : [];
+
+                return (
+                  <div
+                    id={`occurrence-${log.id}`}
+                    key={log.id}
+                    className="scroll-mt-4 border-b border-slate-200 bg-white"
+                  >
+                    <div className="grid gap-3 px-4 py-3 text-sm md:grid-cols-[90px_180px_1.2fr_0.9fr_130px_45px] md:items-center">
+                      <div className="text-xs font-bold text-slate-600">
+                        {getOccurrenceDisplayTime(log)}
+                      </div>
+
+                      <div>
+                        <span className="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-800">
+                          {log.occurrence_type || "Occurrence"}
+                        </span>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {log.site_location || "Unknown Site"}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Site ID: {log.site_id || "N/A"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          {log.officer_name || "Unknown Officer"}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {log.officer_id || ""}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span
+                          className={`inline-flex rounded border px-2 py-1 text-xs font-bold ${getOccurrencePriorityClasses(
+                            log.priority
+                          )}`}
+                        >
+                          {log.priority || "Routine"}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedOccurrenceId(isExpanded ? null : log.id)
+                        }
+                        className="flex h-9 w-9 items-center justify-center rounded border border-slate-400 bg-white text-sm font-bold hover:bg-slate-100"
+                      >
+                        {isExpanded ? "▲" : "▼"}
+                      </button>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="border-t border-slate-200 bg-slate-50 p-4">
+                        <div className="grid gap-4 text-sm md:grid-cols-2">
+                          <div>
+                            <h3 className="mb-2 font-bold">Occurrence Details</h3>
+
+                            <p>
+                              <strong>Date:</strong>{" "}
+                              {log.occurrence_date || "N/A"}
+                            </p>
+
+                            <p>
+                              <strong>Time:</strong>{" "}
+                              {getOccurrenceDisplayTime(log)}
+                            </p>
+
+                            <p>
+                              <strong>Type:</strong>{" "}
+                              {log.occurrence_type || "Occurrence"}
+                            </p>
+
+                            <p>
+                              <strong>Priority:</strong>{" "}
+                              {log.priority || "Routine"}
+                            </p>
+
+                            <p>
+                              <strong>Exact Location:</strong>{" "}
+                              {log.exact_location || "N/A"}
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 className="mb-2 font-bold">Officer / Site</h3>
+
+                            <p>
+                              <strong>Officer:</strong>{" "}
+                              {log.officer_name || "Unknown Officer"}
+                            </p>
+
+                            <p>
+                              <strong>Officer ID:</strong>{" "}
+                              {log.officer_id || "N/A"}
+                            </p>
+
+                            <p>
+                              <strong>Site:</strong>{" "}
+                              {log.site_location || "Unknown Site"}
+                            </p>
+
+                            <p>
+                              <strong>Site ID:</strong> {log.site_id || "N/A"}
+                            </p>
+
+                            <p>
+                              <strong>Submitted:</strong>{" "}
+                              {log.created_at
+                                ? new Date(log.created_at).toLocaleString()
+                                : "N/A"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 text-sm">
+                          <h3 className="mb-2 font-bold">Details / Observation</h3>
+                          <p className="rounded border border-slate-200 bg-white p-3">
+                            {log.details || "No details provided"}
+                          </p>
+                        </div>
+
+                        <div className="mt-4 rounded border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1">
+                            <span>
+                              <strong>Occurrence ID:</strong> {log.id || "N/A"}
+                            </span>
+                            <span>
+                              <strong>Priority:</strong>{" "}
+                              {log.priority || "Routine"}
+                            </span>
+                            <span>
+                              <strong>Type:</strong>{" "}
+                              {log.occurrence_type || "Occurrence"}
+                            </span>
+                            <span>
+                              <strong>Submitted:</strong>{" "}
+                              {log.created_at
+                                ? new Date(log.created_at).toLocaleString()
+                                : "N/A"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {photos.length > 0 && (
+                          <div className="mt-4">
+                            <h3 className="mb-2 text-sm font-bold">
+                              Photo Evidence ({photos.length})
+                            </h3>
+
+                            <div className="flex flex-wrap gap-2">
+                              {photos.map((photo: string, index: number) => (
+                                <button
+                                  key={photo}
+                                  type="button"
+                                  onClick={() => setSelectedImage(photo)}
+                                >
+                                  <img
+                                    src={photo}
+                                    alt={`Occurrence photo ${index + 1}`}
+                                    className="h-24 w-24 cursor-pointer rounded border border-slate-300 bg-white object-contain p-1 hover:opacity-80"
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {filteredOccurrenceLogs.length === 0 && (
+                <div className="p-6 text-center text-sm text-slate-500">
+                  No occurrence logs found.
+                </div>
               )}
             </>
           )}
