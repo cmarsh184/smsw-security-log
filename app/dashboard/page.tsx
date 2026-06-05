@@ -147,6 +147,32 @@ export default function Dashboard() {
     return date.toLocaleString();
   }
 
+  function getOccurrenceDisplayTime(log: any) {
+    if (log.occurrence_time) {
+      return log.occurrence_time.slice(0, 5);
+    }
+
+    return formatTime(log.created_at);
+  }
+
+  function getOccurrenceActivityType(log: any) {
+    if (log.priority === "Action Required") return `🟡 ${log.occurrence_type}`;
+    if (log.priority === "Information") return `🔵 ${log.occurrence_type}`;
+    return `⚪ ${log.occurrence_type}`;
+  }
+
+  function getOccurrenceActivityClasses(log: any) {
+    if (log.priority === "Action Required") {
+      return "border-yellow-300 bg-yellow-100 text-yellow-900";
+    }
+
+    if (log.priority === "Information") {
+      return "border-blue-300 bg-blue-100 text-blue-900";
+    }
+
+    return "border-slate-300 bg-slate-100 text-slate-800";
+  }
+
   function getIncidentAge(value: string | null | undefined) {
     if (!value) return "N/A";
 
@@ -400,7 +426,20 @@ export default function Dashboard() {
     })
     .slice(0, 3);
 
-  const activityLogs = [...logs]
+  const combinedActivityLogs = [
+    ...logs.map((log) => ({
+      type: "incident",
+      id: log.id,
+      created_at: log.created_at,
+      data: log,
+    })),
+    ...occurrenceLogs.map((log) => ({
+      type: "occurrence",
+      id: log.id,
+      created_at: log.created_at,
+      data: log,
+    })),
+  ]
     .sort((a, b) => {
       const aTime = new Date(a.created_at || 0).getTime();
       const bTime = new Date(b.created_at || 0).getTime();
@@ -629,7 +668,7 @@ export default function Dashboard() {
                 Control Room Activity Feed
               </h2>
               <p className="text-xs text-slate-600">
-                Latest incident activity from the live reporting system.
+                Latest incident and occurrence activity from the live reporting system.
               </p>
             </div>
 
@@ -639,42 +678,81 @@ export default function Dashboard() {
           </div>
 
           <div className="divide-y divide-slate-200">
-            {activityLogs.map((log) => (
-              <button
-                key={log.id}
-                type="button"
-                onClick={() => openReportFromFeed(log.id)}
-                className="flex w-full flex-col gap-1 py-2 text-left hover:bg-slate-50 md:flex-row md:items-center md:gap-3"
-              >
-                <span className="w-14 shrink-0 text-xs font-bold text-slate-500">
-                  {formatTime(log.created_at)}
-                </span>
+            {combinedActivityLogs.map((item) => {
+              if (item.type === "incident") {
+                const log = item.data;
 
-                <span
-                  className={`w-fit shrink-0 rounded border px-2 py-0.5 text-[11px] font-bold ${getActivityClasses(
-                    log
-                  )}`}
+                return (
+                  <button
+                    key={`incident-${log.id}`}
+                    type="button"
+                    onClick={() => openReportFromFeed(log.id)}
+                    className="flex w-full flex-col gap-1 py-2 text-left hover:bg-slate-50 md:flex-row md:items-center md:gap-3"
+                  >
+                    <span className="w-14 shrink-0 text-xs font-bold text-slate-500">
+                      {formatTime(log.created_at)}
+                    </span>
+
+                    <span
+                      className={`w-fit shrink-0 rounded border px-2 py-0.5 text-[11px] font-bold ${getActivityClasses(
+                        log
+                      )}`}
+                    >
+                      {getActivityType(log)}
+                    </span>
+
+                    <span className="shrink-0 text-xs font-semibold text-slate-900 md:w-44">
+                      {log.site_location || "Unknown Site"}
+                    </span>
+
+                    <span className="line-clamp-1 text-xs text-slate-600">
+                      {log.description || "No description provided"}
+                    </span>
+
+                    {isLogOpen(log) && (
+                      <span className="shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                        Open {getIncidentAge(log.created_at)}
+                      </span>
+                    )}
+                  </button>
+                );
+              }
+
+              const occurrence = item.data;
+
+              return (
+                <div
+                  key={`occurrence-${occurrence.id}`}
+                  className="flex w-full flex-col gap-1 py-2 text-left hover:bg-slate-50 md:flex-row md:items-center md:gap-3"
                 >
-                  {getActivityType(log)}
-                </span>
-
-                <span className="shrink-0 text-xs font-semibold text-slate-900 md:w-44">
-                  {log.site_location || "Unknown Site"}
-                </span>
-
-                <span className="line-clamp-1 text-xs text-slate-600">
-                  {log.description || "No description provided"}
-                </span>
-
-                {isLogOpen(log) && (
-                  <span className="shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
-                    Open {getIncidentAge(log.created_at)}
+                  <span className="w-14 shrink-0 text-xs font-bold text-slate-500">
+                    {getOccurrenceDisplayTime(occurrence)}
                   </span>
-                )}
-              </button>
-            ))}
 
-            {activityLogs.length === 0 && (
+                  <span
+                    className={`w-fit shrink-0 rounded border px-2 py-0.5 text-[11px] font-bold ${getOccurrenceActivityClasses(
+                      occurrence
+                    )}`}
+                  >
+                    {getOccurrenceActivityType(occurrence)}
+                  </span>
+
+                  <span className="shrink-0 text-xs font-semibold text-slate-900 md:w-44">
+                    {occurrence.site_location || "Unknown Site"}
+                  </span>
+
+                  <span className="line-clamp-1 text-xs text-slate-600">
+                    {occurrence.details || "No details provided"}
+                  </span>
+
+                  <span className="shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                    Occurrence
+                  </span>
+                </div>
+              );
+            })}
+
+            {combinedActivityLogs.length === 0 && (
               <div className="py-3 text-sm text-slate-600">
                 No activity to show yet.
               </div>
