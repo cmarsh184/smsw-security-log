@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [showOpenOnly, setShowOpenOnly] = useState(false);
   const [reportsCollapsed, setReportsCollapsed] = useState(false);
+  const [now, setNow] = useState<Date>(new Date());
 
   async function fetchLogs() {
     const { data, error } = await supabase
@@ -77,6 +78,31 @@ export default function Dashboard() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  function getIncidentAge(value: string | null | undefined) {
+    if (!value) return "N/A";
+
+    const created = new Date(value);
+    if (Number.isNaN(created.getTime())) return "N/A";
+
+    const diffMs = now.getTime() - created.getTime();
+    const diffMins = Math.max(0, Math.floor(diffMs / 60000));
+
+    if (diffMins < 1) return "Less than 1 min";
+    if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? "" : "s"}`;
+
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+
+    if (hours < 24) {
+      return `${hours}h ${mins}m`;
+    }
+
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+
+    return `${days}d ${remainingHours}h`;
   }
 
   function getSeverityClasses(severity: string) {
@@ -187,40 +213,66 @@ export default function Dashboard() {
     return "Open Report";
   }
 
+  function getPriorityClasses(log: any) {
+    if (log.severity === "Critical") {
+      return "border-red-300 bg-red-50 text-red-900";
+    }
+
+    if (log.emergency_services) {
+      return "border-purple-300 bg-purple-50 text-purple-900";
+    }
+
+    if (log.follow_up_required) {
+      return "border-yellow-300 bg-yellow-50 text-yellow-900";
+    }
+
+    if (log.severity === "High") {
+      return "border-orange-300 bg-orange-50 text-orange-900";
+    }
+
+    return "border-slate-200 bg-slate-50 text-slate-800";
+  }
+
   function getActivityType(log: any) {
     if (isLogOpen(log) && log.severity === "Critical")
-      return "Critical incident logged";
+      return "🔴 Critical Incident";
     if (isLogOpen(log) && log.emergency_services)
-      return "Emergency services involved";
-    if (isLogOpen(log) && log.follow_up_required) return "Follow-up required";
-    if (isLogOpen(log)) return "Open report logged";
-    return "Report closed";
+      return "🟣 Emergency Services";
+    if (isLogOpen(log) && log.follow_up_required)
+      return "🟡 Follow-up Required";
+    if (isLogOpen(log)) return "🟠 Open Report";
+    return "🟢 Report Closed";
   }
 
   function getActivityClasses(log: any) {
     if (isLogOpen(log) && log.severity === "Critical") {
-      return "border-red-200 bg-red-50 text-red-800";
+      return "border-red-300 bg-red-100 text-red-900";
     }
 
     if (isLogOpen(log) && log.emergency_services) {
-      return "border-purple-200 bg-purple-50 text-purple-800";
+      return "border-purple-300 bg-purple-100 text-purple-900";
     }
 
     if (isLogOpen(log) && log.follow_up_required) {
-      return "border-yellow-200 bg-yellow-50 text-yellow-900";
+      return "border-yellow-300 bg-yellow-100 text-yellow-900";
     }
 
     if (isLogOpen(log)) {
-      return "border-orange-200 bg-orange-50 text-orange-800";
+      return "border-orange-300 bg-orange-100 text-orange-900";
     }
 
-    return "border-slate-200 bg-slate-50 text-slate-700";
+    return "border-green-300 bg-green-50 text-green-800";
   }
 
   useEffect(() => {
     fetchLogs();
-    const interval = setInterval(fetchLogs, 5000);
-    return () => clearInterval(interval);
+    const fetchInterval = setInterval(fetchLogs, 5000);
+    const clockInterval = setInterval(() => setNow(new Date()), 30000);
+
+    return () => {
+      clearInterval(fetchInterval);
+      clearInterval(clockInterval);
+    };
   }, []);
 
   const openLogs = logs.filter((log) => isLogOpen(log));
@@ -246,6 +298,24 @@ export default function Dashboard() {
         log.emergency_services ||
         log.follow_up_required
     )
+    .sort((a, b) => {
+      const score = (log: any) => {
+        if (log.severity === "Critical") return 1;
+        if (log.emergency_services) return 2;
+        if (log.follow_up_required) return 3;
+        if (log.severity === "High") return 4;
+        return 5;
+      };
+
+      const scoreDifference = score(a) - score(b);
+
+      if (scoreDifference !== 0) return scoreDifference;
+
+      const aDate = new Date(a.created_at || 0).getTime();
+      const bDate = new Date(b.created_at || 0).getTime();
+
+      return aDate - bDate;
+    })
     .slice(0, 3);
 
   const activityLogs = [...logs]
@@ -359,10 +429,10 @@ export default function Dashboard() {
             <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-sm font-bold text-slate-900">
-                  Active Priority
+                  Active Incidents Requiring Action
                 </h2>
                 <p className="text-xs text-slate-600">
-                  Top live incidents requiring operational attention.
+                  Priority queue sorted by severity, emergency services, follow-up, and age.
                 </p>
               </div>
 
@@ -387,25 +457,34 @@ export default function Dashboard() {
                   key={log.id}
                   type="button"
                   onClick={() => openReportFromFeed(log.id)}
-                  className="flex flex-col gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-left hover:bg-slate-100 md:flex-row md:items-center md:justify-between"
+                  className={`flex flex-col gap-2 rounded-md border p-3 text-left hover:brightness-[0.98] md:flex-row md:items-center md:justify-between ${getPriorityClasses(
+                    log
+                  )}`}
                 >
                   <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center md:gap-3">
-                    <span className="w-fit shrink-0 rounded bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
+                    <span className="w-fit shrink-0 rounded bg-white/80 px-2 py-0.5 text-[11px] font-black">
                       {getPriorityReason(log)}
                     </span>
 
-                    <span className="shrink-0 text-sm font-semibold text-slate-900">
+                    <span className="shrink-0 text-sm font-bold">
                       {log.site_location || "Unknown Site"}
                     </span>
 
-                    <span className="line-clamp-1 text-xs leading-4 text-slate-600">
+                    <span className="shrink-0 text-xs font-semibold">
+                      Officer: {log.officer_name || "N/A"}
+                    </span>
+
+                    <span className="line-clamp-1 text-xs leading-4 opacity-80">
                       {log.description || "No description provided"}
                     </span>
                   </div>
 
-                  <span className="shrink-0 text-[11px] font-semibold text-slate-500">
-                    {log.incident_time || ""}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2 text-[11px] font-bold">
+                    <span>{log.incident_time || ""}</span>
+                    <span className="rounded bg-white/80 px-2 py-0.5">
+                      Open {getIncidentAge(log.created_at)}
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -498,6 +577,12 @@ export default function Dashboard() {
                 <span className="line-clamp-1 text-xs text-slate-600">
                   {log.description || "No description provided"}
                 </span>
+
+                {isLogOpen(log) && (
+                  <span className="shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                    Open {getIncidentAge(log.created_at)}
+                  </span>
+                )}
               </button>
             ))}
 
@@ -572,8 +657,14 @@ export default function Dashboard() {
                           {status}
                         </span>
 
+                        {isOpen && (
+                          <span className="inline-flex h-7 w-[150px] items-center rounded border border-slate-300 bg-white/80 px-2 text-[11px] font-bold text-slate-700">
+                            Open {getIncidentAge(log.created_at)}
+                          </span>
+                        )}
+
                         {intelligenceBadges.length > 0 &&
-                          intelligenceBadges.slice(0, 3).map((badge) => (
+                          intelligenceBadges.slice(0, 2).map((badge) => (
                             <span
                               key={badge.label}
                               className={`inline-flex h-7 w-[150px] items-center rounded px-2 text-[11px] font-semibold leading-tight ${badge.className}`}
@@ -711,6 +802,11 @@ export default function Dashboard() {
                             </p>
 
                             <p>
+                              <strong>Incident Age:</strong>{" "}
+                              {isOpen ? getIncidentAge(log.created_at) : "Closed"}
+                            </p>
+
+                            <p>
                               <strong>Exact Location:</strong>{" "}
                               {log.exact_location || "N/A"}
                             </p>
@@ -795,6 +891,10 @@ export default function Dashboard() {
                             </span>
                             <span>
                               <strong>Status:</strong> {status}
+                            </span>
+                            <span>
+                              <strong>Incident Age:</strong>{" "}
+                              {isOpen ? getIncidentAge(log.created_at) : "Closed"}
                             </span>
                             <span>
                               <strong>Created:</strong>{" "}
