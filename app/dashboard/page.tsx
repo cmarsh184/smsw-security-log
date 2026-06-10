@@ -620,9 +620,9 @@ export default function Dashboard() {
       icon: "!",
       value: criticalOpenCount,
       className:
-        criticalOpenCount > 0
-          ? "border-red-300 bg-red-100 text-red-900"
-          : "border-red-200 bg-red-50 text-red-700",
+  criticalOpenCount > 0
+    ? "border-red-500 bg-red-100 text-red-900 animate-pulse shadow-md shadow-red-500/40"
+    : "border-red-200 bg-red-50 text-red-700",
     },
     {
       label: "Emergency",
