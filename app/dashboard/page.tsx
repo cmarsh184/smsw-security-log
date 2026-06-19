@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [showOpenOnly, setShowOpenOnly] = useState(false);
   const [reportsCollapsed, setReportsCollapsed] = useState(false);
   const [occurrencesCollapsed, setOccurrencesCollapsed] = useState(false);
+  const [statsCollapsed, setStatsCollapsed] = useState(true);
   const [now, setNow] = useState<Date>(new Date());
 
   async function fetchLogs() {
@@ -27,7 +28,13 @@ export default function Dashboard() {
 
     if (!error) {
       setLogs(data || []);
-      setLastUpdated(new Date().toLocaleTimeString());
+      setLastUpdated(
+        new Date().toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      );
     }
   }
 
@@ -181,9 +188,10 @@ export default function Dashboard() {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "N/A";
 
-    return date.toLocaleTimeString([], {
+    return date.toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
   }
 
@@ -204,9 +212,7 @@ export default function Dashboard() {
   }
 
   function getOccurrenceActivityType(log: any) {
-    if (log.priority === "Action Required") return `🟡 ${log.occurrence_type}`;
-    if (log.priority === "Information") return `🔵 ${log.occurrence_type}`;
-    return `⚪ ${log.occurrence_type}`;
+    return log.occurrence_type || "Occurrence";
   }
 
   function getOccurrenceActivityClasses(log: any) {
@@ -385,14 +391,21 @@ export default function Dashboard() {
   }
 
   function getActivityType(log: any) {
-    if (isLogOpen(log) && log.severity === "Critical")
-      return "🔴 Critical Incident";
-    if (isLogOpen(log) && log.emergency_services)
-      return "🟣 Emergency Services";
-    if (isLogOpen(log) && log.follow_up_required)
-      return "🟡 Follow-up Required";
-    if (isLogOpen(log)) return "🟠 Open Report";
-    return "🟢 Report Closed";
+    if (isLogOpen(log) && log.severity === "Critical") {
+      return "Critical Incident";
+    }
+
+    if (isLogOpen(log) && log.emergency_services) {
+      return "Emergency Services";
+    }
+
+    if (isLogOpen(log) && log.follow_up_required) {
+      return "Follow-up Required";
+    }
+
+    if (isLogOpen(log)) return "Open Report";
+
+    return "Report Closed";
   }
 
   function getActivityClasses(log: any) {
@@ -596,51 +609,37 @@ export default function Dashboard() {
       return bDate - aDate;
     });
 
-  const stats = [
+  const commandStats = [
     {
-      label: "Open",
-      icon: "●",
+      label: "Open Incidents",
       value: openCount,
-      className: "border-red-200 bg-red-50 text-red-700",
-    },
-    {
-      label: "Closed",
-      icon: "✓",
-      value: closedCount,
-      className: "border-green-200 bg-green-50 text-green-700",
-    },
-    {
-      label: "High",
-      icon: "↑",
-      value: highOpenCount,
-      className: "border-orange-200 bg-orange-50 text-orange-700",
+      helper: "Require active control",
+      className: "border-red-200 bg-red-50 text-red-800",
+      valueClassName: "text-red-700",
     },
     {
       label: "Critical",
-      icon: "!",
       value: criticalOpenCount,
+      helper: "Immediate priority",
       className:
-  criticalOpenCount > 0
-    ? "border-red-500 bg-red-100 text-red-900 animate-pulse shadow-md shadow-red-500/40"
-    : "border-red-200 bg-red-50 text-red-700",
+        criticalOpenCount > 0
+          ? "border-red-500 bg-red-100 text-red-900 animate-pulse shadow-md shadow-red-500/40"
+          : "border-red-200 bg-red-50 text-red-800",
+      valueClassName: "text-red-800",
     },
     {
       label: "Emergency",
-      icon: "+",
       value: emergencyOpenCount,
-      className: "border-purple-200 bg-purple-50 text-purple-800",
+      helper: "Services involved",
+      className: "border-purple-200 bg-purple-50 text-purple-900",
+      valueClassName: "text-purple-800",
     },
     {
       label: "Follow-up",
-      icon: "!",
       value: followUpOpenCount,
+      helper: "Outstanding actions",
       className: "border-yellow-200 bg-yellow-50 text-yellow-900",
-    },
-    {
-      label: "Occurrences",
-      icon: "◉",
-      value: occurrenceCount,
-      className: "border-sky-200 bg-sky-50 text-sky-800",
+      valueClassName: "text-yellow-800",
     },
   ];
 
@@ -780,95 +779,49 @@ export default function Dashboard() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-          <label className="flex w-fit cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700">
-            <input
-              type="checkbox"
-              checked={showOpenOnly}
-              onChange={(e) => setShowOpenOnly(e.target.checked)}
-              className="h-4 w-4"
-            />
-            Show open reports only
-          </label>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {stats.map((stat) => (
-              <span
-                key={stat.label}
-                className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${stat.className}`}
-              >
-                <span className="font-bold">{stat.icon}</span>
-                <span>{stat.label}</span>
-                <span className="rounded bg-white/80 px-1.5 py-0.5 font-black">
-                  {stat.value}
-                </span>
-              </span>
-            ))}
+        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <label className="flex w-fit cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={showOpenOnly}
+                onChange={(e) => setShowOpenOnly(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Show open reports only
+            </label>
 
             {lastUpdated && (
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-                Updated
-                <span className="rounded bg-white/80 px-1.5 py-0.5 font-black">
-                  {lastUpdated}
-                </span>
+              <span className="w-fit rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+                Updated <span className="font-black text-slate-900">{lastUpdated}</span>
               </span>
             )}
           </div>
-        </div>
 
-        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-          <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">
-                Shift Audit Summary
-              </h2>
-              <p className="text-xs text-slate-600">
-                Today's incidents, occurrence activity, patrols and operational coverage.
-              </p>
-            </div>
-
-            <span className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-600">
-              Today
-            </span>
-          </div>
-
-          <div className="grid gap-2 md:grid-cols-4 lg:grid-cols-7">
-            {shiftStats.map((stat) => (
+          <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {commandStats.map((stat) => (
               <div
                 key={stat.label}
-                className={`rounded-md border px-3 py-2 ${stat.className}`}
+                className={`rounded-lg border px-4 py-3 ${stat.className}`}
               >
-                <p className="text-[11px] font-bold uppercase tracking-wide">
+                <p className="text-[11px] font-black uppercase tracking-wide">
                   {stat.label}
                 </p>
-                <p className="mt-1 text-xl font-black">{stat.value}</p>
+                <div className="mt-2 flex items-end justify-between gap-3">
+                  <p className={`text-3xl font-black leading-none ${stat.valueClassName}`}>
+                    {stat.value}
+                  </p>
+                  <p className="text-right text-[11px] font-semibold opacity-75">
+                    {stat.helper}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
-
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                Most Active Site
-              </p>
-              <p className="mt-1 text-sm font-bold text-slate-900">
-                {mostActiveSite}
-              </p>
-            </div>
-
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                Most Active Officer
-              </p>
-              <p className="mt-1 text-sm font-bold text-slate-900">
-                {mostActiveOfficer}
-              </p>
-            </div>
-          </div>
         </div>
 
         <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-          <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="mb-3 flex items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-bold text-slate-900">
                 Control Room Activity Feed
@@ -893,21 +846,21 @@ export default function Dashboard() {
                     key={`incident-${log.id}`}
                     type="button"
                     onClick={() => openReportFromFeed(log.id)}
-                    className="flex w-full flex-col gap-1 py-2 text-left hover:bg-slate-50 md:flex-row md:items-center md:gap-3"
+                    className="grid w-full grid-cols-1 gap-2 py-2.5 text-left hover:bg-slate-50 md:grid-cols-[70px_155px_minmax(140px,220px)_1fr_105px] md:items-center md:gap-3"
                   >
-                    <span className="w-14 shrink-0 text-xs font-bold text-slate-500">
+                    <span className="text-xs font-bold tabular-nums text-slate-500">
                       {formatTime(log.created_at)}
                     </span>
 
                     <span
-                      className={`w-fit shrink-0 rounded border px-2 py-0.5 text-[11px] font-bold ${getActivityClasses(
+                      className={`inline-flex h-7 w-[155px] shrink-0 items-center justify-center rounded border px-2 text-[11px] font-bold ${getActivityClasses(
                         log
                       )}`}
                     >
                       {getActivityType(log)}
                     </span>
 
-                    <span className="shrink-0 text-xs font-semibold text-slate-900 md:w-44">
+                    <span className="truncate text-xs font-bold text-slate-900">
                       {log.site_location || "Unknown Site"}
                     </span>
 
@@ -915,11 +868,15 @@ export default function Dashboard() {
                       {log.description || "No description provided"}
                     </span>
 
-                    {isLogOpen(log) && (
-                      <span className="shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
-                        Open {getIncidentAge(log.created_at)}
-                      </span>
-                    )}
+                    <span
+                      className={`inline-flex h-7 items-center justify-center rounded px-2 text-[11px] font-bold ${
+                        isLogOpen(log)
+                          ? "bg-slate-100 text-slate-700"
+                          : "bg-green-50 text-green-700"
+                      }`}
+                    >
+                      {isLogOpen(log) ? `Open ${getIncidentAge(log.created_at)}` : "Closed"}
+                    </span>
                   </button>
                 );
               }
@@ -944,21 +901,21 @@ export default function Dashboard() {
                       });
                     }, 150);
                   }}
-                  className="flex w-full flex-col gap-1 py-2 text-left hover:bg-slate-50 md:flex-row md:items-center md:gap-3"
+                  className="grid w-full grid-cols-1 gap-2 py-2.5 text-left hover:bg-slate-50 md:grid-cols-[70px_155px_minmax(140px,220px)_1fr_105px] md:items-center md:gap-3"
                 >
-                  <span className="w-14 shrink-0 text-xs font-bold text-slate-500">
+                  <span className="text-xs font-bold tabular-nums text-slate-500">
                     {getOccurrenceDisplayTime(occurrence)}
                   </span>
 
                   <span
-                    className={`w-fit shrink-0 rounded border px-2 py-0.5 text-[11px] font-bold ${getOccurrenceActivityClasses(
+                    className={`inline-flex h-7 w-[155px] shrink-0 items-center justify-center rounded border px-2 text-[11px] font-bold ${getOccurrenceActivityClasses(
                       occurrence
                     )}`}
                   >
                     {getOccurrenceActivityType(occurrence)}
                   </span>
 
-                  <span className="shrink-0 text-xs font-semibold text-slate-900 md:w-44">
+                  <span className="truncate text-xs font-bold text-slate-900">
                     {occurrence.site_location || "Unknown Site"}
                   </span>
 
@@ -966,7 +923,7 @@ export default function Dashboard() {
                     {occurrence.details || "No details provided"}
                   </span>
 
-                  <span className="shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                  <span className="inline-flex h-7 items-center justify-center rounded bg-slate-100 px-2 text-[11px] font-bold text-slate-700">
                     Occurrence
                   </span>
                 </button>
@@ -979,6 +936,65 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setStatsCollapsed(!statsCollapsed)}
+            className="flex w-full items-center justify-between gap-3 text-left"
+          >
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">
+                Operational Statistics
+              </h2>
+              <p className="text-xs text-slate-600">
+                Today's incidents, occurrence activity, patrols and operational coverage.
+              </p>
+            </div>
+
+            <span className="rounded border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-600">
+              {statsCollapsed ? "Show" : "Hide"}
+            </span>
+          </button>
+
+          {!statsCollapsed && (
+            <>
+              <div className="mt-3 grid gap-2 md:grid-cols-4 lg:grid-cols-7">
+                {shiftStats.map((stat) => (
+                  <div
+                    key={stat.label}
+                    className={`rounded-md border px-3 py-2 ${stat.className}`}
+                  >
+                    <p className="text-[11px] font-bold uppercase tracking-wide">
+                      {stat.label}
+                    </p>
+                    <p className="mt-1 text-xl font-black">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                    Most Active Site
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">
+                    {mostActiveSite}
+                  </p>
+                </div>
+
+                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                    Most Active Officer
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">
+                    {mostActiveOfficer}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
