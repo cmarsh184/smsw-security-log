@@ -110,18 +110,48 @@ export default function Home() {
 
     const uploadedPhotoUrls = await uploadPhotos();
 
-    const { error } = await supabase.from("event_logs").insert([
-      {
-        ...form,
-        photo_url: uploadedPhotoUrls[0] || "",
-        photo_urls: uploadedPhotoUrls,
-      },
-    ]);
+    const reportPayload = {
+      ...form,
+      photo_url: uploadedPhotoUrls[0] || "",
+      photo_urls: uploadedPhotoUrls,
+    };
+
+    const { error } = await supabase.from("event_logs").insert([reportPayload]);
 
     if (error) {
       setMessage("Error: " + error.message);
     } else {
-      setMessage("Report submitted successfully.");
+      const shouldSendAlert =
+        reportPayload.severity === "Critical" ||
+        reportPayload.emergency_services ||
+        reportPayload.follow_up_required;
+
+      if (shouldSendAlert) {
+        try {
+          setMessage("Report submitted. Sending alert email...");
+
+          const response = await fetch("/api/send-incident-alert", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(reportPayload),
+          });
+
+          if (!response.ok) {
+            throw new Error("Alert email request failed.");
+          }
+
+          setMessage("Report submitted successfully. Alert email sent.");
+        } catch (alertError) {
+          console.error("Alert email failed:", alertError);
+          setMessage(
+            "Report submitted successfully, but the alert email could not be sent."
+          );
+        }
+      } else {
+        setMessage("Report submitted successfully.");
+      }
 
       setForm({
         ...emptyForm,
