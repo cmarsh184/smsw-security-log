@@ -109,18 +109,20 @@ export default function Home() {
     const offlineReports = getOfflineReports();
 
     if (offlineReports.length === 0) {
-      setMessage("No offline reports waiting to sync.");
+      setMessage("No reports are waiting to send.");
       return;
     }
 
-    setMessage(`Syncing ${offlineReports.length} offline report(s)...`);
+    setMessage(`Sending ${offlineReports.length} waiting report(s)...`);
 
     const remainingReports = [];
 
     for (const report of offlineReports) {
       const { savedOfflineAt, ...reportToSubmit } = report;
 
-      const { error } = await supabase.from("event_logs").insert([reportToSubmit]);
+      const { error } = await supabase
+        .from("event_logs")
+        .insert([reportToSubmit]);
 
       if (error) {
         console.error(error);
@@ -138,10 +140,10 @@ export default function Home() {
     setOfflineCount(remainingReports.length);
 
     if (remainingReports.length === 0) {
-      setMessage("All offline reports synced successfully.");
+      setMessage("All waiting reports sent successfully.");
     } else {
       setMessage(
-        `${remainingReports.length} offline report(s) could not sync yet. Try again when signal improves.`
+        `${remainingReports.length} waiting report(s) could not be sent yet. Try again when signal improves.`
       );
     }
   }
@@ -222,7 +224,7 @@ export default function Home() {
       saveOfflineReport(reportPayload);
 
       setMessage(
-        "No connection. Report saved offline and will be submitted later."
+        "No connection. Report saved on this device and will be sent when signal returns."
       );
 
       resetForm();
@@ -264,14 +266,18 @@ export default function Home() {
 
         {offlineCount > 0 && (
           <div className="mb-4 rounded-lg border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-900">
-            <p className="font-bold">Offline reports waiting: {offlineCount}</p>
+            <p className="font-bold">Reports waiting to send: {offlineCount}</p>
+            <p className="mt-1 text-xs">
+              These reports are safely stored on this device and will appear on
+              the dashboard once sent.
+            </p>
 
             <button
               type="button"
               onClick={syncOfflineReports}
               className="mt-2 w-full rounded bg-yellow-600 px-3 py-2 font-semibold text-white hover:bg-yellow-700"
             >
-              Sync Offline Reports
+              Send Waiting Reports
             </button>
           </div>
         )}
