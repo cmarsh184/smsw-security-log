@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { supabase } from "../lib/supabase";
 
@@ -48,9 +48,107 @@ export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [message, setMessage] = useState("");
+  const [offlineCount, setOfflineCount] = useState(0);
 
   const inputStyle =
     "w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500";
+
+  function resetForm() {
+    setForm({
+      ...emptyForm,
+      log_number: generateLogNumber(),
+    });
+
+    setFiles([]);
+    setFileInputKey((current) => current + 1);
+  }
+
+  function getOfflineReports() {
+    return JSON.parse(localStorage.getItem("offlineReports") || "[]");
+  }
+
+  function updateOfflineCount() {
+    const offlineReports = getOfflineReports();
+    setOfflineCount(offlineReports.length);
+  }
+
+  function saveOfflineReport(report: any) {
+    const existingReports = getOfflineReports();
+
+    existingReports.push({
+      ...report,
+      savedOfflineAt: new Date().toISOString(),
+    });
+
+    localStorage.setItem("offlineReports", JSON.stringify(existingReports));
+    setOfflineCount(existingReports.length);
+  }
+
+  async function sendAlertEmail(reportPayload: any) {
+    const shouldSendAlert =
+      reportPayload.severity === "Critical" ||
+      reportPayload.emergency_services ||
+      reportPayload.follow_up_required;
+
+    if (!shouldSendAlert) return;
+
+    const response = await fetch("/api/send-incident-alert", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(reportPayload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Alert email request failed.");
+    }
+  }
+
+  async function syncOfflineReports() {
+    const offlineReports = getOfflineReports();
+
+    if (offlineReports.length === 0) {
+      setMessage("No offline reports waiting to sync.");
+      return;
+    }
+
+    setMessage(`Syncing ${offlineReports.length} offline report(s)...`);
+
+    const remainingReports = [];
+
+    for (const report of offlineReports) {
+      const { savedOfflineAt, ...reportToSubmit } = report;
+
+      const { error } = await supabase.from("event_logs").insert([reportToSubmit]);
+
+      if (error) {
+        console.error(error);
+        remainingReports.push(report);
+      } else {
+        try {
+          await sendAlertEmail(reportToSubmit);
+        } catch (alertError) {
+          console.error("Alert email failed during offline sync:", alertError);
+        }
+      }
+    }
+
+    localStorage.setItem("offlineReports", JSON.stringify(remainingReports));
+    setOfflineCount(remainingReports.length);
+
+    if (remainingReports.length === 0) {
+      setMessage("All offline reports synced successfully.");
+    } else {
+      setMessage(
+        `${remainingReports.length} offline report(s) could not sync yet. Try again when signal improves.`
+      );
+    }
+  }
+
+  useEffect(() => {
+    updateOfflineCount();
+  }, []);
 
   async function compressPhoto(file: File) {
     return await imageCompression(file, {
@@ -104,22 +202,6 @@ export default function Home() {
     return uploadedUrls;
   }
 
-  function saveOfflineReport(report: any) {
-    const existingReports = JSON.parse(
-      localStorage.getItem("offlineReports") || "[]"
-    );
-  
-    existingReports.push({
-      ...report,
-      savedOfflineAt: new Date().toISOString(),
-    });
-  
-    localStorage.setItem(
-      "offlineReports",
-      JSON.stringify(existingReports)
-    );
-  }
-
   async function submitLog(e: React.FormEvent) {
     e.preventDefault();
     setMessage("Submitting report...");
@@ -135,53 +217,28 @@ export default function Home() {
     const { error } = await supabase.from("event_logs").insert([reportPayload]);
 
     if (error) {
-  console.error(error);
+      console.error(error);
 
-  saveOfflineReport(reportPayload);
+      saveOfflineReport(reportPayload);
 
-  setMessage(
-    "No connection. Report saved offline and will be submitted later."
-  );
-} else {  
-      const shouldSendAlert =
-        reportPayload.severity === "Critical" ||
-        reportPayload.emergency_services ||
-        reportPayload.follow_up_required;
+      setMessage(
+        "No connection. Report saved offline and will be submitted later."
+      );
 
-      if (shouldSendAlert) {
-        try {
-          setMessage("Report submitted. Sending alert email...");
-
-          const response = await fetch("/api/send-incident-alert", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(reportPayload),
-          });
-
-          if (!response.ok) {
-            throw new Error("Alert email request failed.");
-          }
-
-          setMessage("Report submitted successfully. Alert email sent.");
-        } catch (alertError) {
-          console.error("Alert email failed:", alertError);
-          setMessage(
-            "Report submitted successfully, but the alert email could not be sent."
-          );
-        }
-      } else {
+      resetForm();
+    } else {
+      try {
+        setMessage("Report submitted. Sending alert email if required...");
+        await sendAlertEmail(reportPayload);
         setMessage("Report submitted successfully.");
+      } catch (alertError) {
+        console.error("Alert email failed:", alertError);
+        setMessage(
+          "Report submitted successfully, but the alert email could not be sent."
+        );
       }
 
-      setForm({
-        ...emptyForm,
-        log_number: generateLogNumber(),
-      });
-
-      setFiles([]);
-      setFileInputKey((current) => current + 1);
+      resetForm();
     }
   }
 
@@ -204,6 +261,20 @@ export default function Home() {
             </p>
           </div>
         </div>
+
+        {offlineCount > 0 && (
+          <div className="mb-4 rounded-lg border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-900">
+            <p className="font-bold">Offline reports waiting: {offlineCount}</p>
+
+            <button
+              type="button"
+              onClick={syncOfflineReports}
+              className="mt-2 w-full rounded bg-yellow-600 px-3 py-2 font-semibold text-white hover:bg-yellow-700"
+            >
+              Sync Offline Reports
+            </button>
+          </div>
+        )}
 
         <form onSubmit={submitLog} className="space-y-4">
           <p className="font-semibold text-black">Site Details</p>
