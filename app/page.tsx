@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { supabase } from "../lib/supabase";
 
@@ -49,6 +49,7 @@ export default function Home() {
   const [fileInputKey, setFileInputKey] = useState(0);
   const [message, setMessage] = useState("");
   const [offlineCount, setOfflineCount] = useState(0);
+  const syncInProgressRef = useRef(false);
 
   const inputStyle =
     "w-full rounded border border-gray-400 bg-white p-3 text-black placeholder-gray-500";
@@ -105,15 +106,26 @@ export default function Home() {
     }
   }
 
-  async function syncOfflineReports() {
+  async function syncOfflineReports(autoSync = false) {
+    if (syncInProgressRef.current) return;
+
     const offlineReports = getOfflineReports();
 
     if (offlineReports.length === 0) {
-      setMessage("No reports are waiting to send.");
+      if (!autoSync) {
+        setMessage("No reports are waiting to send.");
+      }
+
       return;
     }
 
-    setMessage(`Sending ${offlineReports.length} waiting report(s)...`);
+    syncInProgressRef.current = true;
+
+    setMessage(
+      autoSync
+        ? `Signal restored. Sending ${offlineReports.length} waiting report(s)...`
+        : `Sending ${offlineReports.length} waiting report(s)...`
+    );
 
     const remainingReports = [];
 
@@ -146,10 +158,32 @@ export default function Home() {
         `${remainingReports.length} waiting report(s) could not be sent yet. Try again when signal improves.`
       );
     }
+
+    syncInProgressRef.current = false;
   }
 
   useEffect(() => {
     updateOfflineCount();
+
+    const handleOnline = () => {
+      const offlineReports = JSON.parse(
+        localStorage.getItem("offlineReports") || "[]"
+      );
+
+      if (offlineReports.length > 0) {
+        syncOfflineReports(true);
+      }
+    };
+
+    window.addEventListener("online", handleOnline);
+
+    if (navigator.onLine) {
+      handleOnline();
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+    };
   }, []);
 
   async function compressPhoto(file: File) {
@@ -269,12 +303,13 @@ export default function Home() {
             <p className="font-bold">Reports waiting to send: {offlineCount}</p>
             <p className="mt-1 text-xs">
               These reports are safely stored on this device and will appear on
-              the dashboard once sent.
+              the dashboard once sent. The app will try to send them
+              automatically when signal returns.
             </p>
 
             <button
               type="button"
-              onClick={syncOfflineReports}
+              onClick={() => syncOfflineReports(false)}
               className="mt-2 w-full rounded bg-yellow-600 px-3 py-2 font-semibold text-white hover:bg-yellow-700"
             >
               Send Waiting Reports
