@@ -122,6 +122,23 @@ export default function Dashboard() {
     }
   }
 
+  async function deleteOccurrenceLog(id: string) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this occurrence log? This cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase.from("occurrence_logs").delete().eq("id", id);
+
+    if (!error) {
+      if (expandedOccurrenceId === id) setExpandedOccurrenceId(null);
+      fetchOccurrenceLogs();
+    } else {
+      alert("Could not delete occurrence log: " + error.message);
+    }
+  }
+
   function openReportFromFeed(id: string) {
     setReportsCollapsed(false);
     setExpandedId(id);
@@ -1409,13 +1426,13 @@ export default function Dashboard() {
 
           {!occurrencesCollapsed && (
             <>
-              <div className="hidden grid-cols-[90px_180px_1.2fr_0.9fr_130px_45px] gap-3 border-b bg-slate-100 px-4 py-2 text-xs font-bold uppercase text-slate-700 md:grid">
+              <div className="hidden grid-cols-[90px_170px_1.2fr_0.9fr_140px_180px] gap-3 border-b bg-slate-100 px-4 py-2 text-xs font-bold uppercase text-slate-700 md:grid">
                 <div>Time</div>
                 <div>Type</div>
                 <div>Site</div>
                 <div>Officer</div>
                 <div>Priority</div>
-                <div>Open</div>
+                <div>Actions</div>
               </div>
 
               {filteredOccurrenceLogs.map((log) => {
@@ -1431,13 +1448,13 @@ export default function Dashboard() {
                     key={log.id}
                     className="scroll-mt-4 border-b border-slate-200 bg-white"
                   >
-                    <div className="grid gap-3 px-4 py-3 text-sm md:grid-cols-[90px_180px_1.2fr_0.9fr_130px_45px] md:items-center">
+                    <div className="grid gap-3 px-4 py-3 text-sm md:grid-cols-[90px_170px_1.2fr_0.9fr_140px_180px] md:items-center">
                       <div className="text-xs font-bold text-slate-600">
                         {getOccurrenceDisplayTime(log)}
                       </div>
 
                       <div>
-                        <span className="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-800">
+                        <span className="inline-flex w-[140px] justify-center rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-800">
                           {log.occurrence_type || "Occurrence"}
                         </span>
                       </div>
@@ -1462,7 +1479,7 @@ export default function Dashboard() {
 
                       <div>
                         <span
-                          className={`inline-flex rounded border px-2 py-1 text-xs font-bold ${getOccurrencePriorityClasses(
+                          className={`inline-flex w-[120px] justify-center rounded border px-2 py-1 text-xs font-bold ${getOccurrencePriorityClasses(
                             log.priority
                           )}`}
                         >
@@ -1470,15 +1487,25 @@ export default function Dashboard() {
                         </span>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExpandedOccurrenceId(isExpanded ? null : log.id)
-                        }
-                        className="flex h-9 w-9 items-center justify-center rounded border border-slate-400 bg-white text-sm font-bold hover:bg-slate-100"
-                      >
-                        {isExpanded ? "▲" : "▼"}
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedOccurrenceId(isExpanded ? null : log.id)
+                          }
+                          className="w-20 rounded border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                        >
+                          Details
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => deleteOccurrenceLog(log.id)}
+                          className="w-20 rounded border border-red-300 bg-red-50 px-2 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
 
                     {isExpanded && (
