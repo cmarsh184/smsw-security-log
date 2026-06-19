@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [reportsCollapsed, setReportsCollapsed] = useState(false);
   const [occurrencesCollapsed, setOccurrencesCollapsed] = useState(false);
   const [statsCollapsed, setStatsCollapsed] = useState(true);
+  const [reportPage, setReportPage] = useState(1);
   const [now, setNow] = useState<Date>(new Date());
 
   async function fetchLogs() {
@@ -626,6 +627,29 @@ export default function Dashboard() {
       return bDate - aDate;
     });
 
+  const reportsPerPage = 10;
+  const totalReportPages = Math.max(
+    1,
+    Math.ceil(filteredLogs.length / reportsPerPage)
+  );
+  const safeReportPage = Math.min(reportPage, totalReportPages);
+  const reportStartIndex = (safeReportPage - 1) * reportsPerPage;
+  const paginatedLogs = filteredLogs.slice(
+    reportStartIndex,
+    reportStartIndex + reportsPerPage
+  );
+
+  useEffect(() => {
+    setReportPage(1);
+    setExpandedId(null);
+  }, [search, showOpenOnly]);
+
+  useEffect(() => {
+    if (reportPage > totalReportPages) {
+      setReportPage(totalReportPages);
+    }
+  }, [reportPage, totalReportPages]);
+
   const commandStats = [
     {
       label: "Open Incidents",
@@ -1042,7 +1066,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              {filteredLogs.map((log) => {
+              {paginatedLogs.map((log) => {
                 const status = log.status || "Open";
                 const severity = log.severity || "Low";
                 const isOpen = status === "Open";
@@ -1398,6 +1422,47 @@ export default function Dashboard() {
                   </div>
                 );
               })}
+
+              {filteredLogs.length > reportsPerPage && (
+                <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3 text-sm md:flex-row md:items-center md:justify-between">
+                  <p className="font-semibold text-slate-600">
+                    Showing {reportStartIndex + 1}-
+                    {Math.min(reportStartIndex + reportsPerPage, filteredLogs.length)} of {filteredLogs.length} reports
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setExpandedId(null);
+                        setReportPage((current) => Math.max(1, current - 1));
+                      }}
+                      disabled={safeReportPage === 1}
+                      className="rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Previous
+                    </button>
+
+                    <span className="rounded bg-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700">
+                      Page {safeReportPage} of {totalReportPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setExpandedId(null);
+                        setReportPage((current) =>
+                          Math.min(totalReportPages, current + 1)
+                        );
+                      }}
+                      disabled={safeReportPage === totalReportPages}
+                      className="rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {filteredLogs.length === 0 && (
                 <div className="p-6 text-center text-sm">No reports found.</div>
