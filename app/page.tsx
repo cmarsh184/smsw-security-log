@@ -104,6 +104,22 @@ export default function Home() {
     return uploadedUrls;
   }
 
+  function saveOfflineReport(report: any) {
+    const existingReports = JSON.parse(
+      localStorage.getItem("offlineReports") || "[]"
+    );
+  
+    existingReports.push({
+      ...report,
+      savedOfflineAt: new Date().toISOString(),
+    });
+  
+    localStorage.setItem(
+      "offlineReports",
+      JSON.stringify(existingReports)
+    );
+  }
+
   async function submitLog(e: React.FormEvent) {
     e.preventDefault();
     setMessage("Submitting report...");
@@ -119,8 +135,14 @@ export default function Home() {
     const { error } = await supabase.from("event_logs").insert([reportPayload]);
 
     if (error) {
-      setMessage("Error: " + error.message);
-    } else {
+  console.error(error);
+
+  saveOfflineReport(reportPayload);
+
+  setMessage(
+    "No connection. Report saved offline and will be submitted later."
+  );
+} else {  
       const shouldSendAlert =
         reportPayload.severity === "Critical" ||
         reportPayload.emergency_services ||
